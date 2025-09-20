@@ -180,7 +180,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
 
-            <div>
+            <div className="text-right">
               <h4 className="font-serif font-bold text-foreground mb-4">Contato</h4>
               <div className="space-y-2 text-muted-foreground text-sm">
                 <p>📍 Rua das Flores, 123<br />Vila Madalena - São Paulo, SP</p>
