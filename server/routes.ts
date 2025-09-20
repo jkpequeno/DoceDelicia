@@ -324,6 +324,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CEP lookup route
+  app.get('/api/cep/:cep', async (req, res) => {
+    try {
+      const { cep } = req.params;
+      
+      // Validate CEP format (8 digits)
+      const cleanCep = cep.replace(/\D/g, '');
+      if (cleanCep.length !== 8) {
+        return res.status(400).json({ 
+          error: 'CEP deve conter exatamente 8 dígitos' 
+        });
+      }
+
+      // Call ViaCEP API
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      
+      if (!response.ok) {
+        return res.status(500).json({ 
+          error: 'Erro ao consultar CEP' 
+        });
+      }
+
+      const data = await response.json();
+      
+      if (data.erro) {
+        return res.status(404).json({ 
+          error: 'CEP não encontrado' 
+        });
+      }
+
+      // Return formatted address data
+      res.json({
+        cep: data.cep,
+        street: data.logradouro,
+        neighborhood: data.bairro,
+        city: data.localidade,
+        state: data.uf,
+        complement: data.complemento || '',
+      });
+    } catch (error) {
+      console.error('Error fetching CEP:', error);
+      res.status(500).json({ 
+        error: 'Erro interno do servidor' 
+      });
+    }
+  });
+
   // Coupon routes
   app.post('/api/coupons/validate', isAuthenticated, async (req: any, res) => {
     try {
