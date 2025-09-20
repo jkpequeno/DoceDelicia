@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Star } from "lucide-react";
 import type { Product } from "@shared/schema";
+import peopleMakingCupcakesImg from "@assets/stock_images/people_making_cupcak_f342e731.jpg";
 
 // Customer reviews data
 const customerReviews = [
@@ -211,8 +212,8 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="lg:w-1/2">
               <img 
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=500" 
-                alt="Nossa confeitaria" 
+                src={peopleMakingCupcakesImg} 
+                alt="Pessoas fazendo cupcakes" 
                 className="rounded-3xl shadow-xl w-full h-auto"
                 data-testid="img-about-bakery"
               />
