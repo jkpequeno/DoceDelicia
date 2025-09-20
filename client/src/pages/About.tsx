@@ -69,7 +69,7 @@ export default function About() {
               <img 
                 src="https://images.unsplash.com/photo-1519869325930-281384150729?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
                 alt="Variedade de cupcakes gourmet da Doce Delícia"
-                className="w-full h-80 object-cover rounded-2xl"
+                className="w-full h-full object-cover rounded-2xl"
                 data-testid="img-growth"
               />
             </div>
