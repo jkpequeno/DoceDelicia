@@ -1,13 +1,15 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
+import { useDelivery } from "@/contexts/DeliveryContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus, Trash2, ShoppingBag, MapPin } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 export default function Cart() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading } = useCart();
+  const { cep, available, city, state, setCep, setDeliveryInfo } = useDelivery();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -269,6 +272,60 @@ export default function Cart() {
     setAddressError("");
   };
 
+  // Delivery check functionality
+  const deliveryCheckMutation = useMutation({
+    mutationFn: async (cepToCheck: string) => {
+      const cleanCep = cepToCheck.replace(/\D/g, '');
+      if (cleanCep.length !== 8) {
+        throw new Error('CEP deve conter 8 dígitos');
+      }
+
+      const response = await fetch(`/api/cep/${cleanCep}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao consultar CEP');
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      const available = isDeliveryAvailable(data.city, data.state);
+      setDeliveryInfo({
+        available,
+        city: data.city,
+        state: data.state,
+        cep: data.cep
+      });
+
+      if (available) {
+        toast({
+          title: "✅ Entregamos na sua região!",
+          description: `${data.city}, ${data.state} - CEP ${data.cep}`,
+        });
+      } else {
+        toast({
+          title: "❌ Não entregamos nesta região",
+          description: `Atualmente entregamos apenas em João Pessoa, PB. Você está em ${data.city}, ${data.state}.`,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao consultar CEP",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCepCheck = () => {
+    if (cep.trim()) {
+      deliveryCheckMutation.mutate(cep);
+    }
+  };
+
   // Normalize city name for comparison (remove accents and convert to uppercase)
   const normalizeCity = (cityName: string): string => {
     return cityName
@@ -426,6 +483,59 @@ export default function Cart() {
             <div className="bg-card rounded-2xl p-6 shadow-lg sticky top-24">
               <h3 className="font-serif font-bold text-foreground mb-6">Resumo do Pedido</h3>
               
+              {/* Delivery Checker */}
+              <div className="space-y-4 mb-6 border-b border-border pb-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground">Verificar entrega</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Digite seu CEP"
+                        value={cep}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+                          setCep(value);
+                        }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCepCheck()}
+                        maxLength={9}
+                        className="text-sm"
+                        data-testid="input-delivery-cep"
+                      />
+                      <Button
+                        onClick={handleCepCheck}
+                        disabled={deliveryCheckMutation.isPending || !cep.trim()}
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90"
+                        data-testid="button-check-delivery"
+                      >
+                        {deliveryCheckMutation.isPending ? "..." : "Verificar"}
+                      </Button>
+                    </div>
+                  </div>
+                  {available !== null && (
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={available ? "default" : "destructive"}
+                        className="text-xs"
+                        data-testid={`badge-delivery-${available ? 'available' : 'unavailable'}`}
+                      >
+                        {available ? (
+                          <><CheckCircle className="h-3 w-3 mr-1" />Entregamos</>
+                        ) : (
+                          <><XCircle className="h-3 w-3 mr-1" />Não entregamos</>
+                        )}
+                      </Badge>
+                      {city && state && (
+                        <span className="text-xs text-muted-foreground" data-testid="text-delivery-location">
+                          {city}, {state}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})</span>
