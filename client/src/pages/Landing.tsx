@@ -100,7 +100,7 @@ export default function Landing() {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">
             Mais de 10.000 clientes já se cadastraram. Junte-se a eles e tenha acesso a todo nosso catálogo de sabores únicos.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col items-center gap-4">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-3">
               <a href="/api/login" data-testid="button-cta-register">
                 ✨ Criar Conta
