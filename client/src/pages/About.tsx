@@ -34,8 +34,8 @@ export default function About() {
             </div>
             <div className="lg:w-1/2">
               <img 
-                src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
-                alt="Cozinha artesanal onde tudo começou"
+                src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                alt="Cupcakes artesanais coloridos onde tudo começou"
                 className="w-full h-80 object-cover rounded-2xl"
                 data-testid="img-beginning"
               />
@@ -68,8 +68,8 @@ export default function About() {
             </div>
             <div className="lg:w-1/2">
               <img 
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
-                alt="Loja moderna da Doce Delícia"
+                src="https://images.unsplash.com/photo-1519869325930-281384150729?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                alt="Variedade de cupcakes gourmet da Doce Delícia"
                 className="w-full h-80 object-cover rounded-2xl"
                 data-testid="img-growth"
               />
