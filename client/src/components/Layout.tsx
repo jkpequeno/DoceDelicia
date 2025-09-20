@@ -185,8 +185,6 @@ export default function Layout({ children }: LayoutProps) {
                 <li><Link href="/" className="hover:text-primary transition-colors">Início</Link></li>
                 <li><Link href="/catalog" className="hover:text-primary transition-colors">Catálogo</Link></li>
                 <li><Link href="/about" className="hover:text-primary transition-colors">Sobre Nós</Link></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">FAQ</a></li>
               </ul>
             </div>
 
