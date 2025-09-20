@@ -54,10 +54,14 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-4">
               {/* Cart Icon */}
               <Link href="/cart" data-testid="link-cart">
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="relative border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 h-11 w-11"
+                >
+                  <ShoppingCart className="h-6 w-6 text-primary" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center" data-testid="text-cart-count">
+                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center font-semibold shadow-lg" data-testid="text-cart-count">
                       {itemCount}
                     </span>
                   )}
@@ -112,8 +116,12 @@ export default function Layout({ children }: LayoutProps) {
 
               {isAuthenticated ? (
                 <Link href="/profile" data-testid="link-profile">
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 h-11 w-11"
+                  >
+                    <User className="h-6 w-6 text-primary" />
                   </Button>
                 </Link>
               ) : (
