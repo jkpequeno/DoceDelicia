@@ -34,7 +34,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Left section - Logo */}
             <div className="flex justify-start">
               <Link href="/" className="flex items-center space-x-2 cursor-pointer" data-testid="link-home">
-                <div className="text-2xl">🧁</div>
+                <div className="text-4xl transform hover:scale-110 transition-transform duration-200 shadow-lg">🧁</div>
                 <h1 className="text-2xl font-serif font-bold text-primary">Doce Delícia</h1>
               </Link>
             </div>
@@ -159,7 +159,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="text-3xl">🧁</div>
+                <div className="text-5xl shadow-lg">🧁</div>
                 <h3 className="text-2xl font-serif font-bold text-primary">Doce Delícia</h3>
               </div>
               <p className="text-muted-foreground mb-6 leading-relaxed">
