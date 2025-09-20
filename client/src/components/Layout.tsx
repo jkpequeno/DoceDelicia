@@ -104,7 +104,7 @@ export default function Layout({ children }: LayoutProps) {
                 </Link>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Button asChild variant="outline">
+                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <a href="/api/login" data-testid="button-login">
                       Entrar
                     </a>
