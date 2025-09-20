@@ -19,8 +19,17 @@ export default function Cart() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [addressForm, setAddressForm] = useState({
+    cep: "",
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
+    city: "",
+    state: ""
+  });
   const [addressError, setAddressError] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState("");
@@ -126,7 +135,15 @@ export default function Cart() {
       // Invalidate orders cache to show new order in profile
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       setIsCheckoutOpen(false);
-      setDeliveryAddress("");
+      setAddressForm({
+        cep: "",
+        street: "",
+        number: "",
+        complement: "",
+        neighborhood: "",
+        city: "",
+        state: ""
+      });
       toast({
         title: "Pedido realizado com sucesso!",
         description: "Seu pedido foi confirmado e está sendo preparado.",
@@ -160,48 +177,100 @@ export default function Cart() {
     });
   };
 
-  const validateAddress = (address: string): string => {
-    if (!address.trim()) {
-      return "Endereço é obrigatório";
+  const validateCep = (cep: string): string => {
+    if (!cep.trim()) {
+      return "CEP é obrigatório";
     }
     
-    if (address.trim().length < 10) {
-      return "Endereço deve ter pelo menos 10 caracteres";
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return "CEP deve conter 8 dígitos";
     }
-
-    // Check if it has at least a street name and number
-    const hasNumber = /\d/.test(address);
-    if (!hasNumber) {
-      return "Endereço deve incluir o número";
-    }
-
-    // Check for common address components
-    const addressLower = address.toLowerCase();
-    const hasStreetIndicator = /\b(rua|av|avenida|estrada|alameda|travessa|praça|largo)\b/.test(addressLower);
     
-    if (!hasStreetIndicator) {
-      return "Endereço deve incluir tipo de logradouro (Rua, Av, etc.)";
-    }
-
-    // CEP validation if present (Brazilian postal code: 00000-000 or 00000000)
-    const cepMatch = address.match(/\b\d{5}-?\d{3}\b/);
-    if (cepMatch) {
-      const cep = cepMatch[0].replace('-', '');
-      if (cep.length !== 8 || !/^\d{8}$/.test(cep)) {
-        return "CEP deve ter o formato 00000-000";
-      }
-    }
-
     return "";
   };
 
-  const handleAddressChange = (value: string) => {
-    setDeliveryAddress(value);
+  const validateAddressForm = (): string => {
+    if (!addressForm.cep.trim()) {
+      return "CEP é obrigatório";
+    }
+    
+    if (!addressForm.street.trim()) {
+      return "Logradouro é obrigatório";
+    }
+    
+    if (!addressForm.number.trim()) {
+      return "Número é obrigatório";
+    }
+    
+    if (!addressForm.neighborhood.trim()) {
+      return "Bairro é obrigatório";
+    }
+    
+    if (!addressForm.city.trim()) {
+      return "Cidade é obrigatória";
+    }
+    
+    if (!addressForm.state.trim()) {
+      return "Estado é obrigatório";
+    }
+    
+    return "";
+  };
+
+  const handleCepLookup = async (cep: string) => {
+    const cepError = validateCep(cep);
+    if (cepError) {
+      setAddressError(cepError);
+      return;
+    }
+
+    setCepLoading(true);
+    setAddressError("");
+
+    try {
+      const response = await fetch(`/api/cep/${cep.replace(/\D/g, '')}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAddressError(data.error || "Erro ao consultar CEP");
+        return;
+      }
+
+      // Auto-fill the address fields
+      setAddressForm(prev => ({
+        ...prev,
+        cep: data.cep,
+        street: data.street,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        complement: data.complement
+      }));
+
+      toast({
+        title: "CEP encontrado!",
+        description: `${data.street}, ${data.neighborhood}, ${data.city}`,
+      });
+    } catch (error) {
+      setAddressError("Erro ao consultar CEP");
+      toast({
+        title: "Erro",
+        description: "Não foi possível consultar o CEP",
+        variant: "destructive",
+      });
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  const handleAddressFieldChange = (field: keyof typeof addressForm, value: string) => {
+    setAddressForm(prev => ({ ...prev, [field]: value }));
     setAddressError("");
   };
 
   const handleCheckout = () => {
-    const addressValidationError = validateAddress(deliveryAddress);
+    const addressValidationError = validateAddressForm();
     if (addressValidationError) {
       setAddressError(addressValidationError);
       toast({
@@ -212,8 +281,19 @@ export default function Cart() {
       return;
     }
     
+    // Format the complete address for the API
+    const fullAddress = [
+      addressForm.street,
+      addressForm.number,
+      addressForm.complement && addressForm.complement.trim() ? addressForm.complement : null,
+      addressForm.neighborhood,
+      addressForm.city,
+      addressForm.state,
+      addressForm.cep
+    ].filter(Boolean).join(', ');
+    
     setAddressError("");
-    checkoutMutation.mutate(deliveryAddress);
+    checkoutMutation.mutate(fullAddress);
   };
 
   return (
@@ -364,26 +444,122 @@ export default function Cart() {
                       </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
+                      {/* CEP Lookup */}
                       <div className="space-y-2">
-                        <Label htmlFor="delivery-address">Endereço completo</Label>
-                        <Textarea
-                          id="delivery-address"
-                          placeholder="Ex: Rua das Flores, 123, Apt 45, Vila Madalena, São Paulo, SP, 01310-100"
-                          value={deliveryAddress}
-                          onChange={(e) => handleAddressChange(e.target.value)}
-                          rows={4}
-                          className={addressError ? "border-red-500 focus:border-red-500" : ""}
-                          data-testid="textarea-delivery-address"
-                        />
+                        <Label htmlFor="cep">CEP</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="cep"
+                            placeholder="00000-000"
+                            value={addressForm.cep}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+                              handleAddressFieldChange('cep', value);
+                            }}
+                            onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
+                            maxLength={9}
+                            className={addressError ? "border-red-500" : ""}
+                            data-testid="input-cep"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleCepLookup(addressForm.cep)}
+                            disabled={cepLoading || !addressForm.cep}
+                            data-testid="button-search-cep"
+                          >
+                            {cepLoading ? "..." : "Buscar"}
+                          </Button>
+                        </div>
                         {addressError && (
                           <p className="text-sm text-red-600" data-testid="text-address-error">
                             {addressError}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">
-                          Inclua: tipo de logradouro (Rua, Av), número, bairro e cidade
-                        </p>
                       </div>
+
+                      {/* Address Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <Label htmlFor="street">Logradouro</Label>
+                          <Input
+                            id="street"
+                            placeholder="Rua, Avenida, etc."
+                            value={addressForm.street}
+                            onChange={(e) => handleAddressFieldChange('street', e.target.value)}
+                            readOnly={!!addressForm.street}
+                            className={!!addressForm.street ? "bg-gray-100" : ""}
+                            data-testid="input-street"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="number">Número *</Label>
+                          <Input
+                            id="number"
+                            placeholder="123"
+                            value={addressForm.number}
+                            onChange={(e) => handleAddressFieldChange('number', e.target.value)}
+                            data-testid="input-number"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="complement">Complemento</Label>
+                          <Input
+                            id="complement"
+                            placeholder="Apt 45, Bloco B, etc."
+                            value={addressForm.complement}
+                            onChange={(e) => handleAddressFieldChange('complement', e.target.value)}
+                            data-testid="input-complement"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="neighborhood">Bairro</Label>
+                          <Input
+                            id="neighborhood"
+                            placeholder="Nome do bairro"
+                            value={addressForm.neighborhood}
+                            onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
+                            readOnly={!!addressForm.neighborhood}
+                            className={!!addressForm.neighborhood ? "bg-gray-100" : ""}
+                            data-testid="input-neighborhood"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="city">Cidade</Label>
+                          <Input
+                            id="city"
+                            placeholder="Nome da cidade"
+                            value={addressForm.city}
+                            onChange={(e) => handleAddressFieldChange('city', e.target.value)}
+                            readOnly={!!addressForm.city}
+                            className={!!addressForm.city ? "bg-gray-100" : ""}
+                            data-testid="input-city"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="state">Estado</Label>
+                          <Input
+                            id="state"
+                            placeholder="UF"
+                            value={addressForm.state}
+                            onChange={(e) => handleAddressFieldChange('state', e.target.value.toUpperCase())}
+                            readOnly={!!addressForm.state}
+                            className={!!addressForm.state ? "bg-gray-100" : ""}
+                            maxLength={2}
+                            data-testid="input-state"
+                          />
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground">
+                        Digite o CEP e clique em "Buscar" para preencher automaticamente o endereço
+                      </p>
+                      
                       <div className="bg-accent p-4 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">Total do pedido:</span>
@@ -404,7 +580,7 @@ export default function Cart() {
                         </Button>
                         <Button 
                           onClick={handleCheckout}
-                          disabled={checkoutMutation.isPending || !deliveryAddress.trim() || !!addressError}
+                          disabled={checkoutMutation.isPending || !!validateAddressForm() || !!addressError}
                           className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                           data-testid="button-confirm-checkout"
                         >
