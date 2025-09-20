@@ -156,7 +156,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Footer */}
       <footer className="bg-card border-t border-border py-12 mt-20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="text-3xl">🧁</div>
@@ -179,14 +179,15 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-
-            <div className="text-right">
-              <h4 className="font-serif font-bold text-foreground mb-4">Contato</h4>
-              <div className="space-y-2 text-muted-foreground text-sm">
-                <p>📍 Rua das Flores, 123<br />Vila Madalena - São Paulo, SP</p>
-                <p>📞 (11) 99999-9999</p>
-                <p>✉️ contato@docedelicia.com.br</p>
-                <p>🕒 Seg-Dom: 8h às 20h</p>
+            <div className="flex justify-end">
+              <div className="text-right">
+                <h4 className="font-serif font-bold text-foreground mb-4">Contato</h4>
+                <div className="space-y-2 text-muted-foreground text-sm">
+                  <p>📍 Rua das Flores, 123<br />Vila Madalena - São Paulo, SP</p>
+                  <p>📞 (11) 99999-9999</p>
+                  <p>✉️ contato@docedelicia.com.br</p>
+                  <p>🕒 Seg-Dom: 8h às 20h</p>
+                </div>
               </div>
             </div>
 
