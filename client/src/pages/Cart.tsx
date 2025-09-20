@@ -81,7 +81,22 @@ export default function Cart() {
       });
     },
     onError: (error: any) => {
-      setCouponError(error.message || "Erro ao validar cupom");
+      // Extract just the error message from the response
+      let errorMessage = "Erro ao validar cupom";
+      if (error.message) {
+        try {
+          // If the error message contains JSON, parse it and extract the error field
+          const match = error.message.match(/\{"valid":false,"error":"([^"]+)"\}/);
+          if (match && match[1]) {
+            errorMessage = match[1];
+          } else {
+            errorMessage = error.message;
+          }
+        } catch {
+          errorMessage = error.message;
+        }
+      }
+      setCouponError(errorMessage);
       setAppliedCoupon(null);
     },
   });
