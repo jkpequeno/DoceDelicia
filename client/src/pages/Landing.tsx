@@ -10,19 +10,38 @@ export default function Landing() {
           <div className="flex flex-col lg:flex-row items-center">
             <div className="lg:w-1/2 mb-12 lg:mb-0">
               <h1 className="text-5xl lg:text-6xl font-serif font-bold text-foreground mb-6" data-testid="text-hero-title">
-                Os Melhores <span className="text-primary">Cupcakes</span> do Brasil
+                Crie Sua Conta e Descubra os Melhores <span className="text-primary">Cupcakes</span> do Brasil
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed" data-testid="text-hero-description">
-                Feitos com amor e ingredientes frescos, nossos cupcakes trazem o sabor da felicidade para cada momento especial.
+                Cadastre-se gratuitamente e tenha acesso a sabores únicos, ofertas exclusivas e entrega rápida direto na sua casa.
               </p>
+              
+              {/* Benefits List */}
+              <div className="mb-8 space-y-3">
+                <div className="flex items-center space-x-3 text-lg" data-testid="benefit-catalog">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">✓</div>
+                  <span className="text-foreground">Catálogo completo com mais de 50 sabores</span>
+                </div>
+                <div className="flex items-center space-x-3 text-lg" data-testid="benefit-offers">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">✓</div>
+                  <span className="text-foreground">Ofertas exclusivas para membros</span>
+                </div>
+                <div className="flex items-center space-x-3 text-lg" data-testid="benefit-history">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">✓</div>
+                  <span className="text-foreground">Histórico de pedidos e favoritos</span>
+                </div>
+              </div>
+              
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href="/api/login" data-testid="button-hero-login">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    Entrar e Ver Catálogo
-                  </Button>
-                </a>
-                <Button variant="outline" size="lg" data-testid="button-hero-about">
-                  Sobre Nós
+                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-3">
+                  <a href="/api/login" data-testid="button-hero-register">
+                    🎉 Criar Conta Grátis
+                  </a>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="text-lg px-8 py-3">
+                  <a href="/api/login" data-testid="button-hero-login">
+                    Já tenho conta
+                  </a>
                 </Button>
               </div>
             </div>
@@ -43,30 +62,30 @@ export default function Landing() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-features-title">
-              Por que escolher a Doce Delícia?
+              O que você ganha ao se cadastrar?
             </h2>
             <p className="text-xl text-muted-foreground" data-testid="text-features-description">
-              Qualidade e sabor que fazem a diferença
+              Benefícios exclusivos para nossos membros cadastrados
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6" data-testid="feature-quality">
-              <div className="text-6xl mb-4">🥇</div>
-              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Ingredientes Premium</h3>
-              <p className="text-muted-foreground">Selecionamos apenas os melhores ingredientes para criar sabores únicos e inesquecíveis.</p>
+            <div className="text-center p-6 bg-accent/30 rounded-2xl" data-testid="feature-exclusive">
+              <div className="text-6xl mb-4">🎁</div>
+              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Ofertas Exclusivas</h3>
+              <p className="text-muted-foreground">Descontos especiais, promoções antecipadas e brindes surpresa apenas para membros.</p>
             </div>
 
-            <div className="text-center p-6" data-testid="feature-delivery">
-              <div className="text-6xl mb-4">🚚</div>
-              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Entrega Rápida</h3>
-              <p className="text-muted-foreground">Receba seus cupcakes fresquinhos em até 2 horas, mantendo toda a qualidade e sabor.</p>
+            <div className="text-center p-6 bg-accent/30 rounded-2xl" data-testid="feature-personalized">
+              <div className="text-6xl mb-4">💝</div>
+              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Experiência Personalizada</h3>
+              <p className="text-muted-foreground">Recomendações baseadas nos seus gostos, histórico de compras e lista de favoritos.</p>
             </div>
 
-            <div className="text-center p-6" data-testid="feature-fresh">
-              <div className="text-6xl mb-4">❄️</div>
-              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Sempre Frescos</h3>
-              <p className="text-muted-foreground">Preparamos seus cupcakes sob demanda para garantir máxima frescura e qualidade.</p>
+            <div className="text-center p-6 bg-accent/30 rounded-2xl" data-testid="feature-priority">
+              <div className="text-6xl mb-4">⚡</div>
+              <h3 className="text-xl font-serif font-bold text-foreground mb-3">Atendimento Prioritário</h3>
+              <p className="text-muted-foreground">Suporte dedicado, pedidos prioritários e acompanhamento em tempo real das entregas.</p>
             </div>
           </div>
         </div>
@@ -76,16 +95,19 @@ export default function Landing() {
       <section className="py-20 bg-gradient-to-r from-primary/10 to-secondary/10">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-serif font-bold text-foreground mb-6" data-testid="text-cta-title">
-            Pronto para experimentar?
+            Comece Agora - É Grátis!
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">
-            Junte-se a milhares de clientes satisfeitos e descubra por que somos a cupcakeria favorita do Brasil.
+            Mais de 10.000 clientes já se cadastraram. Junte-se a eles e tenha acesso a todo nosso catálogo de sabores únicos.
           </p>
-          <a href="/api/login" data-testid="button-cta-login">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Criar Conta Grátis
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-3">
+              <a href="/api/login" data-testid="button-cta-register">
+                ✨ Cadastrar-se Grátis Agora
+              </a>
             </Button>
-          </a>
+            <p className="text-sm text-muted-foreground">💯 Sem taxas • 🔒 100% seguro • 🚀 Acesso imediato</p>
+          </div>
         </div>
       </section>
     </div>
