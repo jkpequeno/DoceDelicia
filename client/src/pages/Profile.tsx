@@ -14,7 +14,8 @@ import {
   MapPin, 
   Heart, 
   Package, 
-  Star 
+  Star,
+  LogOut 
 } from "lucide-react";
 
 export default function Profile() {
@@ -144,6 +145,14 @@ export default function Profile() {
                   <Heart className="w-5 h-5" />
                   <span>Favoritos</span>
                 </div>
+                <a 
+                  href="/api/logout" 
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive cursor-pointer"
+                  data-testid="link-logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Sair</span>
+                </a>
               </nav>
             </div>
           </div>
