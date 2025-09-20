@@ -73,8 +73,8 @@ export default function Home() {
                   </div>
                 </div>
               ))
-            ) : featuredProducts && featuredProducts.length > 0 ? (
-              featuredProducts.map((product: Product) => (
+            ) : featuredProducts && (featuredProducts as Product[]).length > 0 ? (
+              (featuredProducts as Product[]).map((product: Product) => (
                 <ProductCard key={product.id} product={product} featured />
               ))
             ) : (

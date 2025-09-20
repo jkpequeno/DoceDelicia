@@ -91,7 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (cartItems) {
+    if (cartItems && Array.isArray(cartItems)) {
       dispatch({ type: "SET_ITEMS", items: cartItems });
     }
   }, [cartItems]);

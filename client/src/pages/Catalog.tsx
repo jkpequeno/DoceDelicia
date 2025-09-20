@@ -29,14 +29,14 @@ export default function Catalog() {
   });
 
   // Filter and sort products
-  const filteredProducts = products?.filter((product: Product) => {
+  const filteredProducts = (products as Product[] || []).filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || product.categoryId === selectedCategory;
+    const matchesCategory = !selectedCategory || selectedCategory === "all" || product.categoryId === selectedCategory;
     
     const matchesPriceRange = (() => {
-      if (!priceRange) return true;
+      if (!priceRange || priceRange === "all") return true;
       const price = parseFloat(product.price);
       switch (priceRange) {
         case "5-8": return price >= 5 && price <= 8;
@@ -89,8 +89,8 @@ export default function Catalog() {
                 <SelectValue placeholder="Todas as Categorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as Categorias</SelectItem>
-                {categories?.map((category: Category) => (
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                {(categories as Category[] || []).map((category: Category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
                   </SelectItem>
@@ -103,7 +103,7 @@ export default function Catalog() {
                 <SelectValue placeholder="Todas as Faixas de Preço" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as Faixas de Preço</SelectItem>
+                <SelectItem value="all">Todas as Faixas de Preço</SelectItem>
                 <SelectItem value="5-8">R$ 5 - R$ 8</SelectItem>
                 <SelectItem value="8-12">R$ 8 - R$ 12</SelectItem>
                 <SelectItem value="12+">R$ 12+</SelectItem>
@@ -160,8 +160,8 @@ export default function Catalog() {
             <Button 
               onClick={() => {
                 setSearchQuery("");
-                setSelectedCategory("");
-                setPriceRange("");
+                setSelectedCategory("all");
+                setPriceRange("all");
                 setSortBy("popular");
               }}
               variant="outline"

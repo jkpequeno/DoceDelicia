@@ -20,17 +20,11 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        {isLoading || !isAuthenticated ? (
-          <Route path="/" component={Landing} />
-        ) : (
-          <>
-            <Route path="/" component={Home} />
-            <Route path="/catalog" component={Catalog} />
-            <Route path="/product/:id" component={ProductDetail} />
-            <Route path="/cart" component={Cart} />
-            <Route path="/profile" component={Profile} />
-          </>
-        )}
+        <Route path="/" component={isLoading || !isAuthenticated ? Landing : Home} />
+        <Route path="/catalog" component={Catalog} />
+        <Route path="/product/:id" component={ProductDetail} />
+        <Route path="/cart" component={Cart} />
+        <Route path="/profile" component={Profile} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
