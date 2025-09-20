@@ -179,14 +179,6 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            <div>
-              <h4 className="font-serif font-bold text-foreground mb-4">Links Rápidos</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link href="/" className="hover:text-primary transition-colors">Início</Link></li>
-                <li><Link href="/catalog" className="hover:text-primary transition-colors">Catálogo</Link></li>
-                <li><Link href="/about" className="hover:text-primary transition-colors">Sobre Nós</Link></li>
-              </ul>
-            </div>
 
             <div>
               <h4 className="font-serif font-bold text-foreground mb-4">Contato</h4>
