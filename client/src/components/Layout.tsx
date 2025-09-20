@@ -52,20 +52,22 @@ export default function Layout({ children }: LayoutProps) {
             </nav>
 
             <div className="flex items-center space-x-4">
-              {/* Cart Icon */}
-              <Link href="/cart" data-testid="link-cart">
-                <Button 
-                  size="icon" 
-                  className="relative bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
-                      {itemCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
+              {/* Cart Icon - Only show when authenticated */}
+              {isAuthenticated && (
+                <Link href="/cart" data-testid="link-cart">
+                  <Button 
+                    size="icon" 
+                    className="relative bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
+                        {itemCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              )}
               
               {/* Mobile menu */}
               <Sheet>
