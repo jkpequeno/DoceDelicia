@@ -22,7 +22,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Início", href: "/" },
     { name: "Catálogo", href: "/catalog" },
     { name: "Sobre Nós", href: "/about" },
-    { name: "Carrinho", href: "/cart", badge: itemCount },
     ...((user as any)?.isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 
@@ -48,16 +47,23 @@ export default function Layout({ children }: LayoutProps) {
                   data-testid={`link-${item.name.toLowerCase()}`}
                 >
                   <span>{item.name}</span>
-                  {item.name === "Carrinho" && itemCount > 0 && (
-                    <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs" data-testid="text-cart-count">
-                      {itemCount}
-                    </span>
-                  )}
                 </Link>
               ))}
             </nav>
 
             <div className="flex items-center space-x-4">
+              {/* Cart Icon */}
+              <Link href="/cart" data-testid="link-cart">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center" data-testid="text-cart-count">
+                      {itemCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+              
               {/* Mobile menu */}
               <Sheet>
                 <SheetTrigger asChild>
@@ -75,13 +81,20 @@ export default function Layout({ children }: LayoutProps) {
                         data-testid={`link-mobile-${item.name.toLowerCase()}`}
                       >
                         <span className="font-medium">{item.name}</span>
-                        {item.name === "Carrinho" && itemCount > 0 && (
-                          <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
-                            {itemCount}
-                          </span>
-                        )}
                       </Link>
                     ))}
+                    <Link
+                      href="/cart"
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
+                      data-testid="link-mobile-carrinho"
+                    >
+                      <span className="font-medium">Carrinho</span>
+                      {itemCount > 0 && (
+                        <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
+                          {itemCount}
+                        </span>
+                      )}
+                    </Link>
                     {!isAuthenticated && (
                       <div className="border-t pt-4">
                         <a
