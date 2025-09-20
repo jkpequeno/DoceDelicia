@@ -93,8 +93,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (cartItems && Array.isArray(cartItems)) {
       dispatch({ type: "SET_ITEMS", items: cartItems });
+    } else if (!isAuthenticated) {
+      // Reset cart when user is not authenticated
+      dispatch({ type: "CLEAR_CART" });
     }
-  }, [cartItems]);
+  }, [cartItems, isAuthenticated]);
 
   const addToCartMutation = useMutation({
     mutationFn: async ({ productId, quantity = 1 }: { productId: string; quantity?: number }) => {
