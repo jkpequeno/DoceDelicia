@@ -47,7 +47,7 @@ export default function Layout({ children }: LayoutProps) {
                   }`}
                   data-testid={`link-${item.name.toLowerCase()}`}
                 >
-                  <span>{item.name}</span>
+                  {item.name !== "Perfil" && {item.name === "Perfil" ? item.name : <span>{item.name}</span>}}
                   {item.badge && item.badge > 0 && (
                     <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs" data-testid="text-cart-count">
                       {item.badge}
