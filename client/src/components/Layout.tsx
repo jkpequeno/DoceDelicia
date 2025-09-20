@@ -109,7 +109,7 @@ export default function Layout({ children }: LayoutProps) {
                       <div className="border-t pt-4">
                         <a
                           href="/api/login"
-                          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors font-medium block text-center"
+                          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 font-medium block text-center"
                           data-testid="button-mobile-login"
                         >
                           Entrar
@@ -167,13 +167,13 @@ export default function Layout({ children }: LayoutProps) {
                 Sabores brasileiros com qualidade internacional.
               </p>
               <div className="flex space-x-4">
-                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
                   📘
                 </div>
-                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
                   📷
                 </div>
-                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+                <div className="bg-primary text-primary-foreground w-10 h-10 rounded-lg flex items-center justify-center hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
                   🐦
                 </div>
               </div>
