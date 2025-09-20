@@ -74,6 +74,8 @@ export const orders = pgTable("orders", {
   status: varchar("status").notNull().default("pending"),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   deliveryAddress: text("delivery_address").notNull(),
+  appliedCouponCode: varchar("applied_coupon_code"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

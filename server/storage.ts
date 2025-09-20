@@ -54,6 +54,7 @@ export interface IStorage {
   
   // Order operations
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
+  createOrderWithCoupon(userId: string, deliveryAddress: string, items: InsertOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
   
@@ -225,6 +226,68 @@ export class DatabaseStorage implements IStorage {
     return newOrder;
   }
 
+  async createOrderWithCoupon(userId: string, deliveryAddress: string, items: InsertOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }> {
+    return await db.transaction(async (tx) => {
+      // Lock and validate coupon within transaction
+      const normalized = couponCode.trim().toUpperCase();
+      const [coupon] = await tx.select().from(coupons)
+        .where(eq(coupons.code, normalized))
+        .for('update'); // Row-level lock
+      
+      if (!coupon || !coupon.isActive) {
+        throw new Error('Cupom não encontrado ou inativo');
+      }
+
+      if (coupon.expiresAt && new Date() > coupon.expiresAt) {
+        throw new Error('Cupom expirado');
+      }
+
+      if (coupon.maxUsage && (coupon.currentUsage || 0) >= coupon.maxUsage) {
+        throw new Error('Cupom esgotado');
+      }
+
+      // Compute totals within transaction using locked coupon data
+      let subtotalCents = 0;
+      items.forEach(item => {
+        const priceCents = Math.round(parseFloat(item.price) * 100);
+        subtotalCents += priceCents * item.quantity;
+      });
+
+      const discountAmountCents = Math.round(subtotalCents * (coupon.discountPercentage / 100));
+      const finalTotalCents = Math.max(0, subtotalCents - discountAmountCents);
+      
+      // Convert to decimal strings
+      const subtotal = (subtotalCents / 100).toFixed(2);
+      const discountAmount = (discountAmountCents / 100).toFixed(2);
+      const finalTotal = (finalTotalCents / 100).toFixed(2);
+
+      // Create order within transaction
+      const [newOrder] = await tx.insert(orders).values({
+        userId,
+        deliveryAddress,
+        total: finalTotal,
+        status: "pending",
+        appliedCouponCode: coupon.code,
+        discountAmount,
+      }).returning();
+      
+      await tx.insert(orderItems).values(
+        items.map(item => ({ ...item, orderId: newOrder.id }))
+      );
+
+      // Increment usage atomically
+      await tx.update(coupons)
+        .set({ currentUsage: sql`current_usage + 1` })
+        .where(eq(coupons.id, coupon.id));
+
+      return { 
+        order: newOrder, 
+        appliedCoupon: coupon,
+        totals: { subtotal, discount: discountAmount, total: finalTotal }
+      };
+    });
+  }
+
   async getUserOrders(userId: string): Promise<Order[]> {
     return await db
       .select()
@@ -328,7 +391,8 @@ export class DatabaseStorage implements IStorage {
 
   // Coupon operations
   async getCoupon(code: string): Promise<Coupon | undefined> {
-    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, code));
+    const normalized = code.trim().toUpperCase();
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, normalized));
     return coupon;
   }
 
@@ -337,7 +401,7 @@ export class DatabaseStorage implements IStorage {
       return { valid: false, error: 'Código do cupom é obrigatório' };
     }
 
-    const coupon = await this.getCoupon(code.toUpperCase());
+    const coupon = await this.getCoupon(code);
     
     if (!coupon) {
       return { valid: false, error: 'Cupom não encontrado' };
@@ -368,7 +432,7 @@ export class DatabaseStorage implements IStorage {
   async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
     const [newCoupon] = await db.insert(coupons).values({
       ...coupon,
-      code: coupon.code.toUpperCase()
+      code: coupon.code.trim().toUpperCase()
     }).returning();
     return newCoupon;
   }

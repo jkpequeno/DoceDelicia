@@ -94,7 +94,8 @@ export default function Cart() {
       
       return await apiRequest("POST", "/api/orders", {
         deliveryAddress,
-        items: orderItems
+        items: orderItems,
+        couponCode: appliedCoupon?.code || null
       });
     },
     onSuccess: () => {
@@ -124,7 +125,7 @@ export default function Cart() {
       return;
     }
     setCouponError("");
-    couponMutation.mutate(couponCode);
+    couponMutation.mutate(couponCode.trim());
   };
 
   const handleRemoveCoupon = () => {

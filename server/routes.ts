@@ -162,11 +162,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { deliveryAddress, items } = req.body;
       
-      if (!deliveryAddress || !items || !Array.isArray(items)) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+      // Validate input using extended schema
+      const orderRequestSchema = z.object({
+        deliveryAddress: z.string().min(1, "Endereço de entrega é obrigatório"),
+        items: z.array(z.object({
+          productId: z.string(),
+          quantity: z.number().int().min(1)
+        })).min(1, "Pelo menos um item é obrigatório"),
+        couponCode: z.string().nullable().optional()
+      });
+      
+      const validatedData = orderRequestSchema.parse(req.body);
+      const { deliveryAddress, items, couponCode } = validatedData;
 
       // Validate and deduplicate items
       const itemsMap = new Map();
@@ -196,15 +204,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Some products not found" });
       }
 
-      // Calculate server-side total using DB prices
-      let total = 0;
+      // Calculate server-side total using DB prices (in cents to avoid floating point errors)
+      let subtotalCents = 0;
       const orderItems = validatedItems.map((item: any) => {
         const product = products.find(p => p.id === item.productId);
         if (!product || !product.isAvailable) {
           throw new Error(`Product ${item.productId} not available`);
         }
-        const lineTotal = parseFloat(product.price) * item.quantity;
-        total += lineTotal;
+        const priceCents = Math.round(parseFloat(product.price) * 100);
+        const lineTotalCents = priceCents * item.quantity;
+        subtotalCents += lineTotalCents;
         return {
           productId: item.productId,
           quantity: item.quantity,
@@ -212,21 +221,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
-      const order = await storage.createOrder(
-        {
-          userId,
-          deliveryAddress,
-          total: total.toString(),
-          status: "pending",
-        },
-        orderItems
-      );
+      let order;
+      let appliedCoupon = null;
+      let totals = null;
+      
+      if (couponCode && couponCode.trim()) {
+        try {
+          // Use atomic transaction for order + coupon (validates coupon inside transaction)
+          const result = await storage.createOrderWithCoupon(
+            userId,
+            deliveryAddress,
+            orderItems,
+            couponCode
+          );
+          
+          order = result.order;
+          appliedCoupon = result.appliedCoupon;
+          totals = result.totals;
+        } catch (error: any) {
+          // Handle known coupon errors with user-friendly messages
+          if (error.message.includes('não encontrado') || 
+              error.message.includes('inativo') ||
+              error.message.includes('expirado') || 
+              error.message.includes('esgotado')) {
+            return res.status(400).json({
+              message: "Código de cupom inválido", 
+              error: error.message
+            });
+          }
+          throw error; // Re-throw unexpected errors
+        }
+      } else {
+        // No coupon - regular order creation
+        const finalTotal = (subtotalCents / 100).toFixed(2);
+        order = await storage.createOrder(
+          {
+            userId,
+            deliveryAddress,
+            total: finalTotal,
+            status: "pending",
+            appliedCouponCode: null,
+            discountAmount: "0.00",
+          },
+          orderItems
+        );
+      }
 
       // Clear cart after order
       await storage.clearCart(userId);
 
       res.json(order);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order" });
     }
