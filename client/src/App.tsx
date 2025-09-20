@@ -12,6 +12,7 @@ import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Cart from "@/pages/Cart";
 import Profile from "@/pages/Profile";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
         <Route path="/product/:id" component={ProductDetail} />
         <Route path="/cart" component={Cart} />
         <Route path="/profile" component={Profile} />
+        <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

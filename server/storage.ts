@@ -22,7 +22,7 @@ import {
   type InsertFavorite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -58,6 +58,18 @@ export interface IStorage {
   getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]>;
   addToFavorites(favorite: InsertFavorite): Promise<Favorite>;
   removeFromFavorites(userId: string, productId: string): Promise<void>;
+  
+  // Admin operations
+  getAdminStats(): Promise<{
+    totalOrders: number;
+    totalRevenue: number;
+    totalProducts: number;
+    totalUsers: number;
+  }>;
+  getAllOrders(): Promise<(Order & { user: User; orderItems: (OrderItem & { product: Product })[] })[]>;
+  updateOrderStatus(id: string, status: string): Promise<Order>;
+  updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
+  deleteProduct(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,7 +84,7 @@ export class DatabaseStorage implements IStorage {
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
-        target: users.email,
+        target: users.id,
         set: {
           ...userData,
           updatedAt: new Date(),
@@ -241,6 +253,68 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(favorites)
       .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
+  }
+
+  // Admin operations
+  async getAdminStats(): Promise<{
+    totalOrders: number;
+    totalRevenue: number;
+    totalProducts: number;
+    totalUsers: number;
+  }> {
+    const [ordersCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
+    const [revenue] = await db.select({ sum: sql<number>`sum(total)` }).from(orders);
+    const [productsCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
+    const [usersCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    
+    return {
+      totalOrders: ordersCount.count || 0,
+      totalRevenue: Number(revenue.sum) || 0,
+      totalProducts: productsCount.count || 0,
+      totalUsers: usersCount.count || 0,
+    };
+  }
+
+  async getAllOrders(): Promise<(Order & { user: User; orderItems: (OrderItem & { product: Product })[] })[]> {
+    return await db
+      .select({
+        id: orders.id,
+        userId: orders.userId,
+        status: orders.status,
+        total: orders.total,
+        deliveryAddress: orders.deliveryAddress,
+        createdAt: orders.createdAt,
+        user: users,
+        orderItems: orderItems,
+        product: products,
+      })
+      .from(orders)
+      .innerJoin(users, eq(orders.userId, users.id))
+      .leftJoin(orderItems, eq(orders.id, orderItems.orderId))
+      .leftJoin(products, eq(orderItems.productId, products.id))
+      .orderBy(desc(orders.createdAt));
+  }
+
+  async updateOrderStatus(id: string, status: string): Promise<Order> {
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status })
+      .where(eq(orders.id, id))
+      .returning();
+    return updatedOrder;
+  }
+
+  async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product> {
+    const [updatedProduct] = await db
+      .update(products)
+      .set(updates)
+      .where(eq(products.id, id))
+      .returning();
+    return updatedProduct;
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db.delete(products).where(eq(products.id, id));
   }
 }
 

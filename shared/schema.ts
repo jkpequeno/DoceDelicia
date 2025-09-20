@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   phone: varchar("phone"),
+  isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -153,9 +154,14 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
+// Insert schemas  
 export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Alternative upsert schema that omits id for normal inserts
+export const upsertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
 });
@@ -190,7 +196,7 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 });
 
 // Types
-export type UpsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Product = typeof products.$inferSelect;

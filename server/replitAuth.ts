@@ -58,6 +58,7 @@ async function upsertUser(
   claims: any,
 ) {
   await storage.upsertUser({
+    id: claims["sub"],  // Use OIDC subject as the user ID
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
@@ -152,5 +153,27 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   } catch (error) {
     res.status(401).json({ message: "Unauthorized" });
     return;
+  }
+};
+
+export const isAdmin: RequestHandler = async (req: any, res, next) => {
+  if (!req.user?.claims) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  
+  try {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    
+    if (!user?.isAdmin) {
+      res.status(403).json({ message: "Admin access required" });
+      return;
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Failed to verify admin status" });
   }
 };

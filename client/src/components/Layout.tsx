@@ -14,7 +14,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { itemCount } = useCart();
   const [location] = useLocation();
 
@@ -23,6 +23,7 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Catálogo", href: "/catalog" },
     { name: "Carrinho", href: "/cart", badge: itemCount },
     { name: "Perfil", href: "/profile" },
+    ...((user as any)?.isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 
   return (

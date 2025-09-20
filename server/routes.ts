@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { insertCartItemSchema, insertFavoriteSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -273,6 +273,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing from favorites:", error);
       res.status(500).json({ message: "Failed to remove from favorites" });
+    }
+  });
+
+  // Admin routes
+  app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  app.get('/api/admin/orders', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const orders = await storage.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching admin orders:", error);
+      res.status(500).json({ message: "Failed to fetch admin orders" });
+    }
+  });
+
+  app.put('/api/admin/orders/:id/status', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      const order = await storage.updateOrderStatus(id, status);
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  app.post('/api/admin/products', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const product = await storage.createProduct(req.body);
+      res.json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.put('/api/admin/products/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.updateProduct(id, req.body);
+      res.json(product);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.delete('/api/admin/products/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteProduct(id);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
     }
   });
 
