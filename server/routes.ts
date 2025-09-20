@@ -276,6 +276,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Coupon routes
+  app.post('/api/coupons/validate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code } = req.body;
+      
+      const result = await storage.validateCoupon(code);
+      
+      if (result.valid) {
+        res.json({
+          valid: true,
+          discount: result.coupon?.discountPercentage,
+          message: `Cupom aplicado! ${result.coupon?.discountPercentage}% de desconto`
+        });
+      } else {
+        res.status(400).json({
+          valid: false,
+          error: result.error
+        });
+      }
+    } catch (error) {
+      console.error("Error validating coupon:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req: any, res) => {
     try {

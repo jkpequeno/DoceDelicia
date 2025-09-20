@@ -6,6 +6,7 @@ import {
   orders,
   orderItems,
   favorites,
+  coupons,
   type User,
   type UpsertUser,
   type Product,
@@ -14,12 +15,14 @@ import {
   type Order,
   type OrderItem,
   type Favorite,
+  type Coupon,
   type InsertProduct,
   type InsertCategory,
   type InsertCartItem,
   type InsertOrder,
   type InsertOrderItem,
   type InsertFavorite,
+  type InsertCoupon,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
@@ -58,6 +61,12 @@ export interface IStorage {
   getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]>;
   addToFavorites(favorite: InsertFavorite): Promise<Favorite>;
   removeFromFavorites(userId: string, productId: string): Promise<void>;
+  
+  // Coupon operations
+  getCoupon(code: string): Promise<Coupon | undefined>;
+  validateCoupon(code: string): Promise<{ valid: boolean; coupon?: Coupon; error?: string }>;
+  incrementCouponUsage(id: string): Promise<void>;
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
   
   // Admin operations
   getAdminStats(): Promise<{
@@ -315,6 +324,53 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<void> {
     await db.delete(products).where(eq(products.id, id));
+  }
+
+  // Coupon operations
+  async getCoupon(code: string): Promise<Coupon | undefined> {
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, code));
+    return coupon;
+  }
+
+  async validateCoupon(code: string): Promise<{ valid: boolean; coupon?: Coupon; error?: string }> {
+    if (!code || code.trim() === '') {
+      return { valid: false, error: 'Código do cupom é obrigatório' };
+    }
+
+    const coupon = await this.getCoupon(code.toUpperCase());
+    
+    if (!coupon) {
+      return { valid: false, error: 'Cupom não encontrado' };
+    }
+
+    if (!coupon.isActive) {
+      return { valid: false, error: 'Cupom inativo' };
+    }
+
+    if (coupon.expiresAt && new Date() > coupon.expiresAt) {
+      return { valid: false, error: 'Cupom expirado' };
+    }
+
+    if (coupon.maxUsage && (coupon.currentUsage || 0) >= coupon.maxUsage) {
+      return { valid: false, error: 'Cupom esgotado' };
+    }
+
+    return { valid: true, coupon };
+  }
+
+  async incrementCouponUsage(id: string): Promise<void> {
+    await db
+      .update(coupons)
+      .set({ currentUsage: sql`current_usage + 1` })
+      .where(eq(coupons.id, id));
+  }
+
+  async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
+    const [newCoupon] = await db.insert(coupons).values({
+      ...coupon,
+      code: coupon.code.toUpperCase()
+    }).returning();
+    return newCoupon;
   }
 }
 
