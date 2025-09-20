@@ -22,7 +22,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: "Início", href: "/" },
     { name: "Catálogo", href: "/catalog" },
     { name: "Carrinho", href: "/cart", badge: itemCount },
-    { name: "Perfil", href: "/profile" },
     ...((user as any)?.isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 

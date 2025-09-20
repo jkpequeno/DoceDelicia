@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { 
-  User, 
+  User as UserIcon, 
   FileText, 
   MapPin, 
   Heart, 
@@ -17,20 +17,23 @@ import {
   Star,
   LogOut 
 } from "lucide-react";
+import type { User, Order, Favorite } from "@shared/schema";
 
 export default function Profile() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
 
-  const { data: orders, isLoading: ordersLoading } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
     enabled: isAuthenticated,
   });
 
-  const { data: favorites, isLoading: favoritesLoading } = useQuery({
+  const { data: favorites, isLoading: favoritesLoading } = useQuery<Favorite[]>({
     queryKey: ["/api/favorites"],
     enabled: isAuthenticated,
   });
+
+  const typedUser = user as User | undefined;
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -69,7 +72,7 @@ export default function Profile() {
     return null;
   }
 
-  const getInitials = (firstName?: string, lastName?: string) => {
+  const getInitials = (firstName?: string | null, lastName?: string | null) => {
     const first = firstName?.charAt(0) || '';
     const last = lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || 'U';
@@ -99,16 +102,16 @@ export default function Profile() {
           <div className="space-y-6">
             <div className="bg-card rounded-2xl p-6 text-center shadow-lg">
               <div className="w-24 h-24 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center text-primary-foreground text-3xl font-bold" data-testid="avatar-initials">
-                {getInitials(user?.firstName, user?.lastName)}
+                {getInitials(typedUser?.firstName, typedUser?.lastName)}
               </div>
               <h2 className="text-xl font-serif font-bold text-foreground mb-2" data-testid="text-user-name">
-                {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName}`
-                  : user?.email || 'Usuário'
+                {typedUser?.firstName && typedUser?.lastName 
+                  ? `${typedUser.firstName} ${typedUser.lastName}`
+                  : typedUser?.email || 'Usuário'
                 }
               </h2>
               <p className="text-muted-foreground mb-4" data-testid="text-user-email">
-                {user?.email}
+                {typedUser?.email}
               </p>
               <div className="flex items-center justify-center space-x-4 text-sm">
                 <div className="text-center">
@@ -130,7 +133,7 @@ export default function Profile() {
               <h3 className="font-serif font-bold text-foreground mb-4">Menu</h3>
               <nav className="space-y-2">
                 <div className="flex items-center space-x-2 p-3 rounded-xl bg-primary/10 text-primary font-medium">
-                  <User className="w-5 h-5" />
+                  <UserIcon className="w-5 h-5" />
                   <span>Dados Pessoais</span>
                 </div>
                 <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer">
@@ -175,7 +178,7 @@ export default function Profile() {
                   </Label>
                   <Input 
                     id="firstName"
-                    value={user?.firstName || ''} 
+                    value={typedUser?.firstName || ''} 
                     readOnly
                     className="bg-input"
                     data-testid="input-first-name"
@@ -187,7 +190,7 @@ export default function Profile() {
                   </Label>
                   <Input 
                     id="lastName"
-                    value={user?.lastName || ''} 
+                    value={typedUser?.lastName || ''} 
                     readOnly
                     className="bg-input"
                     data-testid="input-last-name"
@@ -199,7 +202,7 @@ export default function Profile() {
                   </Label>
                   <Input 
                     id="email"
-                    value={user?.email || ''} 
+                    value={typedUser?.email || ''} 
                     readOnly
                     className="bg-input"
                     data-testid="input-email"
@@ -211,7 +214,7 @@ export default function Profile() {
                   </Label>
                   <Input 
                     id="phone"
-                    value={user?.phone || ''} 
+                    value={typedUser?.phone || ''} 
                     readOnly
                     className="bg-input"
                     data-testid="input-phone"
