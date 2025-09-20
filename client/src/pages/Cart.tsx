@@ -20,6 +20,9 @@ export default function Cart() {
   const queryClient = useQueryClient();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -59,7 +62,27 @@ export default function Cart() {
   }
 
   const deliveryFee = total > 0 ? 5.00 : 0;
-  const finalTotal = total + deliveryFee;
+  const discountAmount = appliedCoupon ? total * (appliedCoupon.discount / 100) : 0;
+  const subtotalAfterDiscount = total - discountAmount;
+  const finalTotal = subtotalAfterDiscount + deliveryFee;
+
+  const couponMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return await apiRequest("POST", "/api/coupons/validate", { code });
+    },
+    onSuccess: (data) => {
+      setAppliedCoupon({ code: couponCode, discount: data.discount });
+      setCouponError("");
+      toast({
+        title: "Cupom aplicado!",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      setCouponError(error.message || "Erro ao validar cupom");
+      setAppliedCoupon(null);
+    },
+  });
 
   const checkoutMutation = useMutation({
     mutationFn: async (deliveryAddress: string) => {
@@ -94,6 +117,25 @@ export default function Cart() {
       });
     },
   });
+
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) {
+      setCouponError("Por favor, insira um código de cupom");
+      return;
+    }
+    setCouponError("");
+    couponMutation.mutate(couponCode);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+    toast({
+      title: "Cupom removido",
+      description: "O cupom foi removido do seu pedido.",
+    });
+  };
 
   const handleCheckout = () => {
     if (!deliveryAddress.trim()) {
@@ -215,6 +257,12 @@ export default function Cart() {
                   <span>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'itens'})</span>
                   <span data-testid="text-subtotal">R$ {total.toFixed(2).replace('.', ',')}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Desconto ({appliedCoupon.code})</span>
+                    <span data-testid="text-discount">-R$ {discountAmount.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-muted-foreground">
                   <span>Taxa de entrega</span>
                   <span data-testid="text-delivery-fee">
@@ -290,21 +338,51 @@ export default function Cart() {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <div className="relative">
-                  <Input 
-                    placeholder="Código do cupom"
-                    className="pr-20"
-                    data-testid="input-coupon"
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="absolute right-1 top-1 bottom-1"
-                    data-testid="button-apply-coupon"
-                  >
-                    Aplicar
-                  </Button>
-                </div>
+                {appliedCoupon ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-green-800 font-medium">Cupom {appliedCoupon.code}</span>
+                        <p className="text-green-600 text-sm">{appliedCoupon.discount}% de desconto aplicado</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveCoupon}
+                        className="text-green-700 hover:text-green-800"
+                        data-testid="button-remove-coupon"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input 
+                        placeholder="Código do cupom"
+                        className="pr-20"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                        data-testid="input-coupon"
+                      />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="absolute right-1 top-1 bottom-1"
+                        onClick={handleApplyCoupon}
+                        disabled={couponMutation.isPending || !couponCode.trim()}
+                        data-testid="button-apply-coupon"
+                      >
+                        {couponMutation.isPending ? "..." : "Aplicar"}
+                      </Button>
+                    </div>
+                    {couponError && (
+                      <p className="text-sm text-red-600" data-testid="text-coupon-error">{couponError}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 p-4 bg-accent rounded-xl">
