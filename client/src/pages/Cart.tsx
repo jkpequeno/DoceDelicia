@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus, Trash2, ShoppingBag, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, MapPin, CheckCircle, XCircle, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +36,8 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [showPixQr, setShowPixQr] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -178,6 +180,33 @@ export default function Cart() {
       title: "Cupom removido",
       description: "O cupom foi removido do seu pedido.",
     });
+  };
+
+  const handlePaymentMethodSelect = (method: string) => {
+    setSelectedPaymentMethod(method);
+    if (method === 'pix') {
+      setShowPixQr(true);
+    } else {
+      setShowPixQr(false);
+    }
+  };
+
+  const generateFakeQrCode = () => {
+    // Generate a fake QR code pattern using squares
+    const qrSize = 25;
+    const pattern = [];
+    
+    for (let i = 0; i < qrSize; i++) {
+      const row = [];
+      for (let j = 0; j < qrSize; j++) {
+        // Create a pseudo-random pattern based on position
+        const shouldFill = (i + j + Math.floor(i/3) + Math.floor(j/3)) % 3 === 0;
+        row.push(shouldFill);
+      }
+      pattern.push(row);
+    }
+    
+    return pattern;
   };
 
   const validateCep = (cep: string): string => {
@@ -562,171 +591,6 @@ export default function Cart() {
               </div>
 
               <div className="space-y-3">
-                <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90" 
-                      size="lg"
-                      disabled={items.length === 0}
-                      data-testid="button-checkout"
-                    >
-                      Finalizar Pedido
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5" />
-                        Endereço de Entrega
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      {/* CEP Lookup */}
-                      <div className="space-y-2">
-                        <Label htmlFor="cep">CEP</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="cep"
-                            placeholder="00000-000"
-                            value={addressForm.cep}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
-                              handleAddressFieldChange('cep', value);
-                            }}
-                            onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
-                            maxLength={9}
-                            className={addressError ? "border-red-500" : ""}
-                            data-testid="input-cep"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => handleCepLookup(addressForm.cep)}
-                            disabled={cepLoading || !addressForm.cep}
-                            data-testid="button-search-cep"
-                          >
-                            {cepLoading ? "..." : "Buscar"}
-                          </Button>
-                        </div>
-                        {addressError && (
-                          <p className="text-sm text-red-600" data-testid="text-address-error">
-                            {addressError}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Address Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                          <Label htmlFor="street">Logradouro</Label>
-                          <Input
-                            id="street"
-                            placeholder="Rua, Avenida, etc."
-                            value={addressForm.street}
-                            onChange={(e) => handleAddressFieldChange('street', e.target.value)}
-                            readOnly={!!addressForm.street}
-                            className={!!addressForm.street ? "bg-gray-100" : ""}
-                            data-testid="input-street"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="number">Número *</Label>
-                          <Input
-                            id="number"
-                            placeholder="123"
-                            value={addressForm.number}
-                            onChange={(e) => handleAddressFieldChange('number', e.target.value)}
-                            data-testid="input-number"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="complement">Complemento</Label>
-                          <Input
-                            id="complement"
-                            placeholder="Apt 45, Bloco B, etc."
-                            value={addressForm.complement}
-                            onChange={(e) => handleAddressFieldChange('complement', e.target.value)}
-                            data-testid="input-complement"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="neighborhood">Bairro</Label>
-                          <Input
-                            id="neighborhood"
-                            placeholder="Nome do bairro"
-                            value={addressForm.neighborhood}
-                            onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
-                            readOnly={!!addressForm.neighborhood}
-                            className={!!addressForm.neighborhood ? "bg-gray-100" : ""}
-                            data-testid="input-neighborhood"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="city">Cidade</Label>
-                          <Input
-                            id="city"
-                            placeholder="Nome da cidade"
-                            value={addressForm.city}
-                            onChange={(e) => handleAddressFieldChange('city', e.target.value)}
-                            readOnly={!!addressForm.city}
-                            className={!!addressForm.city ? "bg-gray-100" : ""}
-                            data-testid="input-city"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="state">Estado</Label>
-                          <Input
-                            id="state"
-                            placeholder="UF"
-                            value={addressForm.state}
-                            onChange={(e) => handleAddressFieldChange('state', e.target.value.toUpperCase())}
-                            readOnly={!!addressForm.state}
-                            className={!!addressForm.state ? "bg-gray-100" : ""}
-                            maxLength={2}
-                            data-testid="input-state"
-                          />
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground">
-                        Digite o CEP e clique em "Buscar" para preencher automaticamente o endereço
-                      </p>
-                      
-                      <div className="bg-accent p-4 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">Total do pedido:</span>
-                          <span className="font-bold text-lg">R$ {finalTotal.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {itemCount} {itemCount === 1 ? 'item' : 'itens'} • Entrega em até 2 horas
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setIsCheckoutOpen(false)}
-                          className="flex-1"
-                          data-testid="button-cancel-checkout"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button 
-                          onClick={handleCheckout}
-                          disabled={checkoutMutation.isPending || !!validateAddressForm() || !!addressError}
-                          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                          data-testid="button-confirm-checkout"
-                        >
-                          {checkoutMutation.isPending ? "Processando..." : "Confirmar Pedido"}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
                 {appliedCoupon ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <div className="flex items-center justify-between">
@@ -787,22 +651,46 @@ export default function Cart() {
 
             <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h3 className="font-serif font-bold text-foreground mb-4">Opções de Pagamento</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
+              <div className="space-y-3 mb-6">
+                <div 
+                  className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    selectedPaymentMethod === 'card' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handlePaymentMethodSelect('card')}
+                  data-testid="option-payment-card"
+                >
                   <span className="text-lg">💳</span>
                   <div>
                     <p className="font-medium text-foreground">Cartão de Crédito/Débito</p>
                     <p className="text-sm text-muted-foreground">Visa, Mastercard, Elo</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div 
+                  className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    selectedPaymentMethod === 'pix' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handlePaymentMethodSelect('pix')}
+                  data-testid="option-payment-pix"
+                >
                   <span className="text-lg">📱</span>
                   <div>
                     <p className="font-medium text-foreground">PIX</p>
                     <p className="text-sm text-muted-foreground">Pagamento instantâneo</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div 
+                  className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    selectedPaymentMethod === 'cash' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handlePaymentMethodSelect('cash')}
+                  data-testid="option-payment-cash"
+                >
                   <span className="text-lg">💰</span>
                   <div>
                     <p className="font-medium text-foreground">Dinheiro na Entrega</p>
@@ -810,6 +698,196 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
+
+              {showPixQr && selectedPaymentMethod === 'pix' && (
+                <div className="mb-6 p-4 bg-accent rounded-xl text-center">
+                  <h4 className="font-medium text-foreground mb-3">Código PIX</h4>
+                  <div className="bg-white p-4 rounded-lg inline-block">
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(25, 1fr)', gap: 0}} className="mx-auto w-fit">
+                      {generateFakeQrCode().flatMap((row, i) => 
+                        row.map((filled, j) => (
+                          <div
+                            key={`${i}-${j}`}
+                            className={`w-2 h-2 ${filled ? 'bg-black' : 'bg-white'}`}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Escaneie o código com seu aplicativo do banco
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Código: 00020126330014BR.GOV.BCB.PIX2711doce-delicia5204000053039865802BR5913DOCE DELICIA6009SAO PAULO62070503***6304ABCD
+                  </p>
+                </div>
+              )}
+
+              <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90" 
+                    size="lg"
+                    disabled={items.length === 0 || !selectedPaymentMethod}
+                    data-testid="button-checkout"
+                  >
+                    Finalizar Pedido
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Endereço de Entrega
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {/* CEP Lookup */}
+                    <div className="space-y-2">
+                      <Label htmlFor="cep">CEP</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="cep"
+                          placeholder="00000-000"
+                          value={addressForm.cep}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+                            handleAddressFieldChange('cep', value);
+                          }}
+                          onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
+                          maxLength={9}
+                          className={addressError ? "border-red-500" : ""}
+                          data-testid="input-cep"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleCepLookup(addressForm.cep)}
+                          disabled={cepLoading || !addressForm.cep}
+                          data-testid="button-search-cep"
+                        >
+                          {cepLoading ? "..." : "Buscar"}
+                        </Button>
+                      </div>
+                      {addressError && (
+                        <p className="text-sm text-red-600" data-testid="text-address-error">
+                          {addressError}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Address Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <Label htmlFor="street">Logradouro</Label>
+                        <Input
+                          id="street"
+                          placeholder="Rua, Avenida, etc."
+                          value={addressForm.street}
+                          onChange={(e) => handleAddressFieldChange('street', e.target.value)}
+                          readOnly={!!addressForm.street}
+                          className={!!addressForm.street ? "bg-gray-100" : ""}
+                          data-testid="input-street"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="number">Número *</Label>
+                        <Input
+                          id="number"
+                          placeholder="123"
+                          value={addressForm.number}
+                          onChange={(e) => handleAddressFieldChange('number', e.target.value)}
+                          data-testid="input-number"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="complement">Complemento</Label>
+                        <Input
+                          id="complement"
+                          placeholder="Apt 45, Bloco B, etc."
+                          value={addressForm.complement}
+                          onChange={(e) => handleAddressFieldChange('complement', e.target.value)}
+                          data-testid="input-complement"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="neighborhood">Bairro</Label>
+                        <Input
+                          id="neighborhood"
+                          placeholder="Nome do bairro"
+                          value={addressForm.neighborhood}
+                          onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
+                          readOnly={!!addressForm.neighborhood}
+                          className={!!addressForm.neighborhood ? "bg-gray-100" : ""}
+                          data-testid="input-neighborhood"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="city">Cidade</Label>
+                        <Input
+                          id="city"
+                          placeholder="Nome da cidade"
+                          value={addressForm.city}
+                          onChange={(e) => handleAddressFieldChange('city', e.target.value)}
+                          readOnly={!!addressForm.city}
+                          className={!!addressForm.city ? "bg-gray-100" : ""}
+                          data-testid="input-city"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="state">Estado</Label>
+                        <Input
+                          id="state"
+                          placeholder="UF"
+                          value={addressForm.state}
+                          onChange={(e) => handleAddressFieldChange('state', e.target.value.toUpperCase())}
+                          readOnly={!!addressForm.state}
+                          className={!!addressForm.state ? "bg-gray-100" : ""}
+                          maxLength={2}
+                          data-testid="input-state"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Digite o CEP e clique em "Buscar" para preencher automaticamente o endereço
+                    </p>
+                    
+                    <div className="bg-accent p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium">Total do pedido:</span>
+                        <span className="font-bold text-lg">R$ {finalTotal.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {itemCount} {itemCount === 1 ? 'item' : 'itens'} • Entrega em até 2 horas
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsCheckoutOpen(false)}
+                        className="flex-1"
+                        data-testid="button-cancel-checkout"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        onClick={handleCheckout}
+                        disabled={checkoutMutation.isPending || !!validateAddressForm() || !!addressError}
+                        className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                        data-testid="button-confirm-checkout"
+                      >
+                        {checkoutMutation.isPending ? "Processando..." : "Confirmar Pedido"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
