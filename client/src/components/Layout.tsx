@@ -47,9 +47,9 @@ export default function Layout({ children }: LayoutProps) {
                   data-testid={`link-${item.name.toLowerCase()}`}
                 >
                   <span>{item.name}</span>
-                  {item.badge && typeof item.badge === 'number' && item.badge > 0 && (
+                  {item.name === "Carrinho" && itemCount > 0 && (
                     <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs" data-testid="text-cart-count">
-                      {item.badge}
+                      {itemCount}
                     </span>
                   )}
                 </Link>
@@ -74,9 +74,9 @@ export default function Layout({ children }: LayoutProps) {
                         data-testid={`link-mobile-${item.name.toLowerCase()}`}
                       >
                         <span className="font-medium">{item.name}</span>
-                        {item.badge && typeof item.badge === 'number' && item.badge > 0 && (
+                        {item.name === "Carrinho" && itemCount > 0 && (
                           <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
-                            {item.badge}
+                            {itemCount}
                           </span>
                         )}
                       </Link>
