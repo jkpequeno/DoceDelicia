@@ -480,7 +480,7 @@ export default function Cart() {
 
           {/* Order Summary */}
           <div className="space-y-6">
-            <div className="bg-card rounded-2xl p-6 shadow-lg sticky top-24">
+            <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h3 className="font-serif font-bold text-foreground mb-6">Resumo do Pedido</h3>
               
               {/* Delivery Checker */}
