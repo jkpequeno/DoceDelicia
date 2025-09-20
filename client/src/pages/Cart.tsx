@@ -786,27 +786,27 @@ export default function Cart() {
             </div>
 
             <div className="bg-card rounded-2xl p-6 shadow-lg">
-              <h3 className="font-serif font-bold text-foreground mb-4">Informações de Entrega</h3>
+              <h3 className="font-serif font-bold text-foreground mb-4">Opções de Pagamento</h3>
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">📍</span>
-                  <div>
-                    <p className="font-medium text-foreground">Endereço será coletado no checkout</p>
-                    <p className="text-sm text-muted-foreground">Entrega rápida em toda a cidade</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">⏰</span>
-                  <div>
-                    <p className="font-medium text-foreground">Entrega em até 2 horas</p>
-                    <p className="text-sm text-muted-foreground">Cupcakes fresquinhos na sua casa</p>
-                  </div>
-                </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-lg">💳</span>
                   <div>
-                    <p className="font-medium text-foreground">Pagamento na entrega</p>
-                    <p className="text-sm text-muted-foreground">Dinheiro, cartão ou PIX</p>
+                    <p className="font-medium text-foreground">Cartão de Crédito/Débito</p>
+                    <p className="text-sm text-muted-foreground">Visa, Mastercard, Elo</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">📱</span>
+                  <div>
+                    <p className="font-medium text-foreground">PIX</p>
+                    <p className="text-sm text-muted-foreground">Pagamento instantâneo</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">💰</span>
+                  <div>
+                    <p className="font-medium text-foreground">Dinheiro na Entrega</p>
+                    <p className="text-sm text-muted-foreground">Troco disponível</p>
                   </div>
                 </div>
               </div>
