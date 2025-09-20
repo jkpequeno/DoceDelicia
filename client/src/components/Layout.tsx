@@ -30,13 +30,17 @@ export default function Layout({ children }: LayoutProps) {
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 cursor-pointer" data-testid="link-home">
-              <div className="text-2xl">🧁</div>
-              <h1 className="text-2xl font-serif font-bold text-primary">Doce Delícia</h1>
-            </Link>
+          <div className="grid grid-cols-3 items-center">
+            {/* Left section - Logo */}
+            <div className="flex justify-start">
+              <Link href="/" className="flex items-center space-x-2 cursor-pointer" data-testid="link-home">
+                <div className="text-2xl">🧁</div>
+                <h1 className="text-2xl font-serif font-bold text-primary">Doce Delícia</h1>
+              </Link>
+            </div>
             
-            <nav className="hidden md:flex items-center space-x-6">
+            {/* Center section - Navigation */}
+            <nav className="hidden md:flex items-center justify-center space-x-6">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
@@ -51,7 +55,8 @@ export default function Layout({ children }: LayoutProps) {
               ))}
             </nav>
 
-            <div className="flex items-center space-x-4">
+            {/* Right section - Auth/Profile buttons */}
+            <div className="flex items-center justify-end space-x-4">
               {/* Cart Icon - Only show when authenticated */}
               {isAuthenticated && (
                 <Link href="/cart" data-testid="link-cart">
