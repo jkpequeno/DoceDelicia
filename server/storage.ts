@@ -22,7 +22,7 @@ import {
   type InsertFavorite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -39,13 +39,14 @@ export interface IStorage {
   getProductsByCategory(categoryId: string): Promise<Product[]>;
   getFeaturedProducts(): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
+  getProductsByIds(ids: string[]): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   
   // Cart operations
   getCartItems(userId: string): Promise<(CartItem & { product: Product })[]>;
   addToCart(cartItem: InsertCartItem): Promise<CartItem>;
-  updateCartItem(id: string, quantity: number): Promise<CartItem>;
-  removeFromCart(id: string): Promise<void>;
+  updateCartItem(id: string, quantity: number, userId: string): Promise<CartItem | null>;
+  removeFromCart(id: string, userId: string): Promise<boolean>;
   clearCart(userId: string): Promise<void>;
   
   // Order operations
@@ -116,6 +117,13 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
+  async getProductsByIds(ids: string[]): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(inArray(products.id, ids));
+  }
+
   async createProduct(product: InsertProduct): Promise<Product> {
     const [newProduct] = await db.insert(products).values(product).returning();
     return newProduct;
@@ -164,17 +172,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateCartItem(id: string, quantity: number): Promise<CartItem> {
+  async updateCartItem(id: string, quantity: number, userId: string): Promise<CartItem | null> {
     const [updatedItem] = await db
       .update(cartItems)
       .set({ quantity })
-      .where(eq(cartItems.id, id))
+      .where(and(eq(cartItems.id, id), eq(cartItems.userId, userId)))
       .returning();
-    return updatedItem;
+    return updatedItem || null;
   }
 
-  async removeFromCart(id: string): Promise<void> {
-    await db.delete(cartItems).where(eq(cartItems.id, id));
+  async removeFromCart(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(cartItems)
+      .where(and(eq(cartItems.id, id), eq(cartItems.userId, userId)))
+      .returning();
+    return result.length > 0;
   }
 
   async clearCart(userId: string): Promise<void> {

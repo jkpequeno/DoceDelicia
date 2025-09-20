@@ -102,6 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/cart/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const { quantity } = req.body;
       
@@ -109,7 +110,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid quantity" });
       }
       
-      const cartItem = await storage.updateCartItem(id, quantity);
+      const cartItem = await storage.updateCartItem(id, quantity, userId);
+      if (!cartItem) {
+        return res.status(404).json({ message: "Cart item not found or not owned by user" });
+      }
       res.json(cartItem);
     } catch (error) {
       console.error("Error updating cart item:", error);
@@ -119,8 +123,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/cart/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
-      await storage.removeFromCart(id);
+      const removed = await storage.removeFromCart(id, userId);
+      if (!removed) {
+        return res.status(404).json({ message: "Cart item not found or not owned by user" });
+      }
       res.json({ message: "Item removed from cart" });
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -160,10 +168,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Calculate total
-      const total = items.reduce((sum: number, item: any) => {
-        return sum + (parseFloat(item.price) * item.quantity);
-      }, 0);
+      // Validate and deduplicate items
+      const itemsMap = new Map();
+      items.forEach((item: any) => {
+        if (!item.productId || !item.quantity || item.quantity < 1) {
+          throw new Error('Invalid item format');
+        }
+        const quantity = parseInt(item.quantity);
+        if (itemsMap.has(item.productId)) {
+          // Aggregate quantities for duplicate products
+          itemsMap.set(item.productId, itemsMap.get(item.productId) + quantity);
+        } else {
+          itemsMap.set(item.productId, quantity);
+        }
+      });
+      
+      const validatedItems = Array.from(itemsMap.entries()).map(([productId, quantity]) => ({
+        productId,
+        quantity
+      }));
+
+      // Fetch products from database to get real prices
+      const productIds = validatedItems.map(item => item.productId);
+      const products = await storage.getProductsByIds(productIds);
+      
+      if (products.length !== productIds.length) {
+        return res.status(400).json({ message: "Some products not found" });
+      }
+
+      // Calculate server-side total using DB prices
+      let total = 0;
+      const orderItems = validatedItems.map((item: any) => {
+        const product = products.find(p => p.id === item.productId);
+        if (!product || !product.isAvailable) {
+          throw new Error(`Product ${item.productId} not available`);
+        }
+        const lineTotal = parseFloat(product.price) * item.quantity;
+        total += lineTotal;
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          price: product.price // Use DB price, not client price
+        };
+      });
 
       const order = await storage.createOrder(
         {
@@ -172,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: total.toString(),
           status: "pending",
         },
-        items
+        orderItems
       );
 
       // Clear cart after order

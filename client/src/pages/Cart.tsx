@@ -4,14 +4,22 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
-import { useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Minus, Plus, Trash2, ShoppingBag, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Cart() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { items, itemCount, total, updateQuantity, removeFromCart, isLoading } = useCart();
+  const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading } = useCart();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -52,6 +60,52 @@ export default function Cart() {
 
   const deliveryFee = total > 0 ? 5.00 : 0;
   const finalTotal = total + deliveryFee;
+
+  const checkoutMutation = useMutation({
+    mutationFn: async (deliveryAddress: string) => {
+      const orderItems = items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+        // Note: price is calculated server-side for security
+      }));
+      
+      return await apiRequest("POST", "/api/orders", {
+        deliveryAddress,
+        items: orderItems
+      });
+    },
+    onSuccess: () => {
+      // Clear local cart state
+      clearCart();
+      // Invalidate orders cache to show new order in profile
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      setIsCheckoutOpen(false);
+      setDeliveryAddress("");
+      toast({
+        title: "Pedido realizado com sucesso!",
+        description: "Seu pedido foi confirmado e está sendo preparado.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao finalizar pedido",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCheckout = () => {
+    if (!deliveryAddress.trim()) {
+      toast({
+        title: "Endereço obrigatório",
+        description: "Por favor, insira seu endereço de entrega.",
+        variant: "destructive",
+      });
+      return;
+    }
+    checkoutMutation.mutate(deliveryAddress);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -176,14 +230,66 @@ export default function Cart() {
               </div>
 
               <div className="space-y-3">
-                <Button 
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90" 
-                  size="lg"
-                  disabled={items.length === 0}
-                  data-testid="button-checkout"
-                >
-                  Finalizar Pedido
-                </Button>
+                <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90" 
+                      size="lg"
+                      disabled={items.length === 0}
+                      data-testid="button-checkout"
+                    >
+                      Finalizar Pedido
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Endereço de Entrega
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="delivery-address">Endereço completo</Label>
+                        <Textarea
+                          id="delivery-address"
+                          placeholder="Rua, número, complemento, bairro, cidade, CEP..."
+                          value={deliveryAddress}
+                          onChange={(e) => setDeliveryAddress(e.target.value)}
+                          rows={4}
+                          data-testid="textarea-delivery-address"
+                        />
+                      </div>
+                      <div className="bg-accent p-4 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">Total do pedido:</span>
+                          <span className="font-bold text-lg">R$ {finalTotal.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {itemCount} {itemCount === 1 ? 'item' : 'itens'} • Entrega em até 2 horas
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsCheckoutOpen(false)}
+                          className="flex-1"
+                          data-testid="button-cancel-checkout"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          onClick={handleCheckout}
+                          disabled={checkoutMutation.isPending || !deliveryAddress.trim()}
+                          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                          data-testid="button-confirm-checkout"
+                        >
+                          {checkoutMutation.isPending ? "Processando..." : "Confirmar Pedido"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <div className="relative">
                   <Input 
                     placeholder="Código do cupom"
@@ -213,21 +319,30 @@ export default function Cart() {
             </div>
 
             <div className="bg-card rounded-2xl p-6 shadow-lg">
-              <h3 className="font-serif font-bold text-foreground mb-4">Endereço de Entrega</h3>
-              <div className="space-y-2 text-sm">
-                <p className="font-medium text-foreground">João Silva</p>
-                <p className="text-muted-foreground">Rua das Flores, 123</p>
-                <p className="text-muted-foreground">Vila Madalena - São Paulo, SP</p>
-                <p className="text-muted-foreground">CEP: 05433-000</p>
+              <h3 className="font-serif font-bold text-foreground mb-4">Informações de Entrega</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">📍</span>
+                  <div>
+                    <p className="font-medium text-foreground">Endereço será coletado no checkout</p>
+                    <p className="text-sm text-muted-foreground">Entrega rápida em toda a cidade</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">⏰</span>
+                  <div>
+                    <p className="font-medium text-foreground">Entrega em até 2 horas</p>
+                    <p className="text-sm text-muted-foreground">Cupcakes fresquinhos na sua casa</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">💳</span>
+                  <div>
+                    <p className="font-medium text-foreground">Pagamento na entrega</p>
+                    <p className="text-sm text-muted-foreground">Dinheiro, cartão ou PIX</p>
+                  </div>
+                </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="mt-3 text-primary hover:underline p-0"
-                data-testid="button-change-address"
-              >
-                Alterar endereço
-              </Button>
             </div>
           </div>
         </div>

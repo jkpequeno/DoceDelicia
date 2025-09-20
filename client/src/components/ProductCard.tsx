@@ -1,9 +1,13 @@
 import { Link } from "wouter";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Plus } from "lucide-react";
-import type { Product } from "@shared/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Product, Favorite } from "@shared/schema";
 
 interface ProductCardProps {
   product: Product;
@@ -12,11 +16,68 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, featured = false }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch user's favorites
+  const { data: favorites } = useQuery({
+    queryKey: ["/api/favorites"],
+    enabled: isAuthenticated,
+  });
+
+  // Check if this product is favorited
+  const isFavorite = favorites && Array.isArray(favorites) 
+    ? favorites.some((fav: any) => fav.productId === product.id)
+    : false;
+
+  // Favorites mutation
+  const favoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (isFavorite) {
+        await apiRequest("DELETE", `/api/favorites/${product.id}`);
+      } else {
+        await apiRequest("POST", "/api/favorites", { productId: product.id });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({
+        title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
+        description: isFavorite 
+          ? "Produto removido da sua lista de favoritos" 
+          : "Produto adicionado à sua lista de favoritos",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os favoritos",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product.id);
+  };
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para gerenciar seus favoritos",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    favoriteMutation.mutate();
   };
 
   return (
@@ -33,14 +94,15 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
           />
           <button 
             className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // TODO: Implement favorites
-            }}
+            onClick={handleToggleFavorite}
+            disabled={favoriteMutation.isPending}
             data-testid={`button-favorite-${product.id}`}
           >
-            <Heart className="h-4 w-4 text-muted-foreground hover:text-red-500 transition-colors" />
+            <Heart className={`h-4 w-4 transition-colors ${
+              isFavorite 
+                ? "text-red-500 fill-red-500" 
+                : "text-muted-foreground hover:text-red-500"
+            }`} />
           </button>
         </div>
         
