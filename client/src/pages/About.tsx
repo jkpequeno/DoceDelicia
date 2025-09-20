@@ -47,7 +47,6 @@ export default function About() {
         <section className="bg-accent/20 rounded-2xl p-8" data-testid="section-growth">
           <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
             <div className="lg:w-1/2">
-              <div className="text-6xl mb-4">📈</div>
               <h2 className="text-3xl font-serif font-bold text-foreground mb-4">
                 Crescimento e Expansão
               </h2>
