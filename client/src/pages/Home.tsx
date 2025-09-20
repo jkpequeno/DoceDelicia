@@ -3,9 +3,64 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { Star } from "lucide-react";
 import type { Product } from "@shared/schema";
 
+// Customer reviews data
+const customerReviews = [
+  {
+    id: 1,
+    name: "Maria Silva",
+    rating: 5,
+    comment: "Os cupcakes são simplesmente divinos! O sabor de brigadeiro é o melhor que já provei. Super recomendo!",
+    date: "15 de Setembro, 2025",
+    avatar: "MS"
+  },
+  {
+    id: 2,
+    name: "João Santos",
+    rating: 5,
+    comment: "Pedimos para o aniversário da minha filha e foi um sucesso! Os cupcakes chegaram frescos e lindos. Obrigado!",
+    date: "12 de Setembro, 2025",
+    avatar: "JS"
+  },
+  {
+    id: 3,
+    name: "Ana Costa",
+    rating: 4,
+    comment: "Qualidade excelente e sabores únicos. O atendimento também é muito bom. Voltarei a comprar com certeza!",
+    date: "10 de Setembro, 2025",
+    avatar: "AC"
+  },
+  {
+    id: 4,
+    name: "Carlos Oliveira",
+    rating: 5,
+    comment: "Melhor cupcake de São Paulo! O de chocolate com morango é inesquecível. Parabéns pelo trabalho!",
+    date: "08 de Setembro, 2025",
+    avatar: "CO"
+  },
+  {
+    id: 5,
+    name: "Lucia Fernandes",
+    rating: 5,
+    comment: "Sabor caseiro com apresentação profissional. Os cupcakes da Doce Delícia são perfeitos para qualquer ocasião!",
+    date: "05 de Setembro, 2025",
+    avatar: "LF"
+  },
+  {
+    id: 6,
+    name: "Pedro Almeida",
+    rating: 4,
+    comment: "Ingredientes de qualidade e sabor incrível. O cupcake de coco é o meu favorito. Continuem assim!",
+    date: "03 de Setembro, 2025",
+    avatar: "PA"
+  }
+];
+
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   const { data: featuredProducts, isLoading } = useQuery({
     queryKey: ["/api/products", { featured: "true" }],
   });
@@ -46,51 +101,107 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Products or Reviews */}
       <section className="py-20 bg-card">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-featured-title">
-              Destaques da Semana
-            </h2>
-            <p className="text-xl text-muted-foreground" data-testid="text-featured-description">
-              Sabores especiais que conquistaram nossos clientes
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-accent rounded-2xl overflow-hidden">
-                  <Skeleton className="w-full h-64" />
-                  <div className="p-6">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full mb-4" />
-                    <div className="flex items-center justify-between">
-                      <Skeleton className="h-6 w-20" />
-                      <Skeleton className="h-8 w-24" />
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : featuredProducts && (featuredProducts as Product[]).length > 0 ? (
-              (featuredProducts as Product[]).map((product: Product) => (
-                <ProductCard key={product.id} product={product} featured />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12" data-testid="text-no-featured">
-                <p className="text-muted-foreground">Nenhum produto em destaque no momento.</p>
+          {isAuthenticated ? (
+            /* Reviews Section */
+            <>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-reviews-title">
+                  Avaliações
+                </h2>
+                <p className="text-xl text-muted-foreground" data-testid="text-reviews-description">
+                  O que nossos clientes dizem sobre nossos cupcakes
+                </p>
               </div>
-            )}
-          </div>
 
-          <div className="text-center mt-12">
-            <Link href="/catalog" data-testid="link-view-all">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Ver Todos os Sabores
-              </Button>
-            </Link>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {customerReviews.map((review) => (
+                  <div key={review.id} className="bg-background rounded-2xl p-6 shadow-lg border border-border" data-testid={`review-${review.id}`}>
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold mr-4" data-testid={`avatar-${review.id}`}>
+                        {review.avatar}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground" data-testid={`name-${review.id}`}>{review.name}</h3>
+                        <div className="flex items-center" data-testid={`rating-${review.id}`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-4 leading-relaxed" data-testid={`comment-${review.id}`}>
+                      "{review.comment}"
+                    </p>
+                    <p className="text-sm text-muted-foreground" data-testid={`date-${review.id}`}>
+                      {review.date}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center mt-12">
+                <Link href="/catalog" data-testid="link-view-all-reviews">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    Experimente Nossos Sabores
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            /* Featured Products Section */
+            <>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-featured-title">
+                  Destaques da Semana
+                </h2>
+                <p className="text-xl text-muted-foreground" data-testid="text-featured-description">
+                  Sabores especiais que conquistaram nossos clientes
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-accent rounded-2xl overflow-hidden">
+                      <Skeleton className="w-full h-64" />
+                      <div className="p-6">
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full mb-4" />
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-6 w-20" />
+                          <Skeleton className="h-8 w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : featuredProducts && (featuredProducts as Product[]).length > 0 ? (
+                  (featuredProducts as Product[]).map((product: Product) => (
+                    <ProductCard key={product.id} product={product} featured />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12" data-testid="text-no-featured">
+                    <p className="text-muted-foreground">Nenhum produto em destaque no momento.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center mt-12">
+                <Link href="/catalog" data-testid="link-view-all">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    Ver Todos os Sabores
+                  </Button>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
