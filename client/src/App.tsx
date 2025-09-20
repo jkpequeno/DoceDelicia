@@ -13,6 +13,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import Cart from "@/pages/Cart";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
         <Route path="/catalog" component={Catalog} />
         <Route path="/product/:id" component={ProductDetail} />
         <Route path="/cart" component={Cart} />
+        <Route path="/about" component={About} />
         <Route path="/profile" component={Profile} />
         <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
