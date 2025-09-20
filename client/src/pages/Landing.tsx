@@ -1,5 +1,58 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
+
+// Customer reviews data
+const customerReviews = [
+  {
+    id: 1,
+    name: "Maria Silva",
+    rating: 5,
+    comment: "Os cupcakes são simplesmente divinos! O sabor de brigadeiro é o melhor que já provei. Super recomendo!",
+    date: "15 de Setembro, 2025",
+    avatar: "MS"
+  },
+  {
+    id: 2,
+    name: "João Santos",
+    rating: 5,
+    comment: "Pedimos para o aniversário da minha filha e foi um sucesso! Os cupcakes chegaram frescos e lindos. Obrigado!",
+    date: "12 de Setembro, 2025",
+    avatar: "JS"
+  },
+  {
+    id: 3,
+    name: "Ana Costa",
+    rating: 4,
+    comment: "Qualidade excelente e sabores únicos. O atendimento também é muito bom. Voltarei a comprar com certeza!",
+    date: "10 de Setembro, 2025",
+    avatar: "AC"
+  },
+  {
+    id: 4,
+    name: "Carlos Oliveira",
+    rating: 5,
+    comment: "Melhor cupcake de São Paulo! O de chocolate com morango é inesquecível. Parabéns pelo trabalho!",
+    date: "08 de Setembro, 2025",
+    avatar: "CO"
+  },
+  {
+    id: 5,
+    name: "Lucia Fernandes",
+    rating: 5,
+    comment: "Sabor caseiro com apresentação profissional. Os cupcakes da Doce Delícia são perfeitos para qualquer ocasião!",
+    date: "05 de Setembro, 2025",
+    avatar: "LF"
+  },
+  {
+    id: 6,
+    name: "Pedro Almeida",
+    rating: 4,
+    comment: "Ingredientes de qualidade e sabor incrível. O cupcake de coco é o meu favorito. Continuem assim!",
+    date: "03 de Setembro, 2025",
+    avatar: "PA"
+  }
+];
 
 export default function Landing() {
   return (
@@ -53,6 +106,59 @@ export default function Landing() {
                 data-testid="img-hero-cupcakes"
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-reviews-title">
+              Avaliações
+            </h2>
+            <p className="text-xl text-muted-foreground" data-testid="text-reviews-description">
+              O que nossos clientes dizem sobre nossos cupcakes
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {customerReviews.map((review) => (
+              <div key={review.id} className="bg-card rounded-2xl p-6 shadow-lg border border-border" data-testid={`review-${review.id}`}>
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold mr-4" data-testid={`avatar-${review.id}`}>
+                    {review.avatar}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground" data-testid={`name-${review.id}`}>{review.name}</h3>
+                    <div className="flex items-center" data-testid={`rating-${review.id}`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-4 leading-relaxed" data-testid={`comment-${review.id}`}>
+                  "{review.comment}"
+                </p>
+                <p className="text-sm text-muted-foreground" data-testid={`date-${review.id}`}>
+                  {review.date}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <a href="/api/login" data-testid="button-reviews-register">
+                Cadastre-se e Experimente
+              </a>
+            </Button>
           </div>
         </div>
       </section>
