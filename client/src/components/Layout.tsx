@@ -165,6 +165,24 @@ export default function Layout({ children }: LayoutProps) {
                 <p>🕒 Seg-Dom: 8h às 20h</p>
               </div>
             </div>
+
+            {!isAuthenticated && (
+              <div>
+                <h4 className="font-serif font-bold text-foreground mb-4">Acesso</h4>
+                <div className="space-y-3">
+                  <Button asChild variant="outline" className="w-full">
+                    <a href="/api/login" data-testid="button-footer-login">
+                      Entrar
+                    </a>
+                  </Button>
+                  <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    <a href="/api/login" data-testid="button-footer-register">
+                      Criar Conta
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-border pt-8 mt-8 text-center text-muted-foreground">

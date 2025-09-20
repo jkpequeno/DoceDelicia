@@ -35,7 +35,7 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-3">
                   <a href="/api/login" data-testid="button-hero-register">
-                    🎉 Criar Conta Grátis
+                    🎉 Criar Conta
                   </a>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-lg px-8 py-3">
@@ -103,7 +103,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-3">
               <a href="/api/login" data-testid="button-cta-register">
-                ✨ Cadastrar-se Grátis Agora
+                ✨ Criar Conta
               </a>
             </Button>
             <p className="text-sm text-muted-foreground">💯 Sem taxas • 🔒 100% seguro • 🚀 Acesso imediato</p>
