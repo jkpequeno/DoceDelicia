@@ -20,6 +20,7 @@ export default function Cart() {
   const queryClient = useQueryClient();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState("");
@@ -159,15 +160,59 @@ export default function Cart() {
     });
   };
 
+  const validateAddress = (address: string): string => {
+    if (!address.trim()) {
+      return "Endereço é obrigatório";
+    }
+    
+    if (address.trim().length < 10) {
+      return "Endereço deve ter pelo menos 10 caracteres";
+    }
+
+    // Check if it has at least a street name and number
+    const hasNumber = /\d/.test(address);
+    if (!hasNumber) {
+      return "Endereço deve incluir o número";
+    }
+
+    // Check for common address components
+    const addressLower = address.toLowerCase();
+    const hasStreetIndicator = /\b(rua|av|avenida|estrada|alameda|travessa|praça|largo)\b/.test(addressLower);
+    
+    if (!hasStreetIndicator) {
+      return "Endereço deve incluir tipo de logradouro (Rua, Av, etc.)";
+    }
+
+    // CEP validation if present (Brazilian postal code: 00000-000 or 00000000)
+    const cepMatch = address.match(/\b\d{5}-?\d{3}\b/);
+    if (cepMatch) {
+      const cep = cepMatch[0].replace('-', '');
+      if (cep.length !== 8 || !/^\d{8}$/.test(cep)) {
+        return "CEP deve ter o formato 00000-000";
+      }
+    }
+
+    return "";
+  };
+
+  const handleAddressChange = (value: string) => {
+    setDeliveryAddress(value);
+    setAddressError("");
+  };
+
   const handleCheckout = () => {
-    if (!deliveryAddress.trim()) {
+    const addressValidationError = validateAddress(deliveryAddress);
+    if (addressValidationError) {
+      setAddressError(addressValidationError);
       toast({
-        title: "Endereço obrigatório",
-        description: "Por favor, insira seu endereço de entrega.",
+        title: "Endereço inválido",
+        description: addressValidationError,
         variant: "destructive",
       });
       return;
     }
+    
+    setAddressError("");
     checkoutMutation.mutate(deliveryAddress);
   };
 
@@ -323,12 +368,21 @@ export default function Cart() {
                         <Label htmlFor="delivery-address">Endereço completo</Label>
                         <Textarea
                           id="delivery-address"
-                          placeholder="Rua, número, complemento, bairro, cidade, CEP..."
+                          placeholder="Ex: Rua das Flores, 123, Apt 45, Vila Madalena, São Paulo, SP, 01310-100"
                           value={deliveryAddress}
-                          onChange={(e) => setDeliveryAddress(e.target.value)}
+                          onChange={(e) => handleAddressChange(e.target.value)}
                           rows={4}
+                          className={addressError ? "border-red-500 focus:border-red-500" : ""}
                           data-testid="textarea-delivery-address"
                         />
+                        {addressError && (
+                          <p className="text-sm text-red-600" data-testid="text-address-error">
+                            {addressError}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Inclua: tipo de logradouro (Rua, Av), número, bairro e cidade
+                        </p>
                       </div>
                       <div className="bg-accent p-4 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
@@ -350,7 +404,7 @@ export default function Cart() {
                         </Button>
                         <Button 
                           onClick={handleCheckout}
-                          disabled={checkoutMutation.isPending || !deliveryAddress.trim()}
+                          disabled={checkoutMutation.isPending || !deliveryAddress.trim() || !!addressError}
                           className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                           data-testid="button-confirm-checkout"
                         >
