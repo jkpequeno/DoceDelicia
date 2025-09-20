@@ -2,7 +2,6 @@ import { Link } from "wouter";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Heart, Plus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -120,11 +119,6 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
             </span>
             
             <div className="flex items-center space-x-2">
-              {product.isFeatured && (
-                <Badge variant="secondary" className="text-xs" data-testid={`badge-featured-${product.id}`}>
-                  Destaque
-                </Badge>
-              )}
               
               <Button 
                 size="sm" 
