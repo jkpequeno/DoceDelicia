@@ -103,11 +103,18 @@ export default function Layout({ children }: LayoutProps) {
                   </Button>
                 </Link>
               ) : (
-                <a href="/api/login" data-testid="button-login">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    Entrar
+                <div className="flex items-center space-x-2">
+                  <Button asChild variant="outline">
+                    <a href="/api/login" data-testid="button-login">
+                      Entrar
+                    </a>
                   </Button>
-                </a>
+                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <a href="/api/login" data-testid="button-register">
+                      Criar Conta
+                    </a>
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -166,23 +173,6 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {!isAuthenticated && (
-              <div>
-                <h4 className="font-serif font-bold text-foreground mb-4">Acesso</h4>
-                <div className="space-y-3">
-                  <Button asChild variant="outline" className="w-full">
-                    <a href="/api/login" data-testid="button-footer-login">
-                      Entrar
-                    </a>
-                  </Button>
-                  <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    <a href="/api/login" data-testid="button-footer-register">
-                      Criar Conta
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="border-t border-border pt-8 mt-8 text-center text-muted-foreground">
