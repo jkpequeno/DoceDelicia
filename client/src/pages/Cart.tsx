@@ -269,6 +269,22 @@ export default function Cart() {
     setAddressError("");
   };
 
+  // Normalize city name for comparison (remove accents and convert to uppercase)
+  const normalizeCity = (cityName: string): string => {
+    return cityName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .trim();
+  };
+
+  // Check if delivery is available for João Pessoa, PB
+  const isDeliveryAvailable = (cityName: string, stateName: string): boolean => {
+    const normalizedCity = normalizeCity(cityName);
+    const normalizedState = stateName.toUpperCase().trim();
+    return normalizedCity === 'JOAO PESSOA' && normalizedState === 'PB';
+  };
+
   const handleCheckout = () => {
     const addressValidationError = validateAddressForm();
     if (addressValidationError) {
@@ -276,6 +292,17 @@ export default function Cart() {
       toast({
         title: "Endereço inválido",
         description: addressValidationError,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check delivery availability for the address
+    if (!isDeliveryAvailable(addressForm.city, addressForm.state)) {
+      setAddressError("Entrega não disponível para esta localidade");
+      toast({
+        title: "Entrega não disponível",
+        description: `Não entregamos em ${addressForm.city}, ${addressForm.state}. Atualmente entregamos apenas em João Pessoa, PB.`,
         variant: "destructive",
       });
       return;

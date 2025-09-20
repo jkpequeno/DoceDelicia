@@ -176,6 +176,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = orderRequestSchema.parse(req.body);
       const { deliveryAddress, items, couponCode } = validatedData;
 
+      // Extract and validate CEP for delivery area restriction
+      const cepMatch = deliveryAddress.match(/\b\d{5}-?\d{3}\b/);
+      if (!cepMatch) {
+        return res.status(400).json({ 
+          message: "CEP não encontrado no endereço de entrega" 
+        });
+      }
+
+      const cep = cepMatch[0].replace('-', '');
+      
+      // Validate delivery area using ViaCEP
+      try {
+        const cepResponse = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        
+        if (!cepResponse.ok) {
+          return res.status(400).json({ 
+            message: "Erro ao verificar CEP para entrega" 
+          });
+        }
+        
+        const cepData = await cepResponse.json();
+        
+        if (cepData.erro) {
+          return res.status(400).json({ 
+            message: "CEP inválido" 
+          });
+        }
+
+        // Normalize city name for comparison (remove accents and convert to uppercase)
+        const normalizeCity = (cityName: string): string => {
+          return cityName
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase()
+            .trim();
+        };
+
+        const normalizedCity = normalizeCity(cepData.localidade);
+        const normalizedState = cepData.uf.toUpperCase().trim();
+        
+        // Check if delivery is available for João Pessoa, PB only
+        const isDeliveryAvailable = normalizedCity === 'JOAO PESSOA' && normalizedState === 'PB';
+        
+        if (!isDeliveryAvailable) {
+          return res.status(400).json({ 
+            message: "Entrega não disponível",
+            error: `Não entregamos em ${cepData.localidade}, ${cepData.uf}. Atualmente entregamos apenas em João Pessoa, PB.`
+          });
+        }
+      } catch (error) {
+        console.error("Error validating delivery area:", error);
+        return res.status(400).json({ 
+          message: "Erro ao verificar área de entrega" 
+        });
+      }
+
       // Validate and deduplicate items
       const itemsMap = new Map();
       items.forEach((item: any) => {
