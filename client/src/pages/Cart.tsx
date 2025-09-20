@@ -62,7 +62,9 @@ export default function Cart() {
   }
 
   const deliveryFee = total > 0 ? 5.00 : 0;
-  const discountAmount = appliedCoupon ? total * (appliedCoupon.discount / 100) : 0;
+  const discountAmount = (appliedCoupon && typeof appliedCoupon.discount === 'number') 
+    ? total * (appliedCoupon.discount / 100) 
+    : 0;
   const subtotalAfterDiscount = total - discountAmount;
   const finalTotal = subtotalAfterDiscount + deliveryFee;
 

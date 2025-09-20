@@ -331,11 +331,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await storage.validateCoupon(code);
       
-      if (result.valid) {
+      if (result.valid && result.coupon) {
         res.json({
           valid: true,
-          discount: result.coupon?.discountPercentage,
-          message: `Cupom aplicado! ${result.coupon?.discountPercentage}% de desconto`
+          discount: result.coupon.discountPercentage,
+          message: `Cupom aplicado! ${result.coupon.discountPercentage}% de desconto`
         });
       } else {
         res.status(400).json({
