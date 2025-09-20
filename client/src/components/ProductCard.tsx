@@ -1,8 +1,9 @@
 import { Link } from "wouter";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useDelivery } from "@/contexts/DeliveryContext";
 import { Button } from "@/components/ui/button";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, MapPin } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, featured = false }: ProductCardProps) {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { available, city, state } = useDelivery();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,6 +62,27 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check delivery availability before adding to cart
+    if (available === null) {
+      toast({
+        title: "Verifique a entrega",
+        description: "Por favor, informe seu CEP no campo acima para verificar se entregamos na sua região.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (available === false) {
+      toast({
+        title: "Entrega não disponível",
+        description: `Não entregamos em ${city}, ${state}. Atualmente entregamos apenas em João Pessoa, PB.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Delivery is available, proceed with adding to cart
     addToCart(product.id);
   };
 
@@ -123,11 +146,24 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
               <Button 
                 size="sm" 
                 onClick={handleAddToCart}
-                className="bg-primary hover:bg-primary/90"
+                disabled={available === false}
+                className={available === false 
+                  ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                  : "bg-primary hover:bg-primary/90"
+                }
                 data-testid={`button-add-cart-${product.id}`}
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar
+                {available === false ? (
+                  <>
+                    <MapPin className="h-4 w-4 mr-1" />
+                    Entrega indisponível
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar
+                  </>
+                )}
               </Button>
             </div>
           </div>
