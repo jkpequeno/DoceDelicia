@@ -194,7 +194,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="border-t border-border pt-8 mt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 Doce Delícia. Todos os direitos reservados. Feito com 💜 no Brasil.</p>
+            <p>&copy; 2024 Doce Delícia. Todos os direitos reservados. Feito com ❤️ no Brasil.</p>
           </div>
         </div>
       </footer>
