@@ -62,17 +62,21 @@ export default function Cart() {
   }
 
   const deliveryFee = total > 0 ? 5.00 : 0;
-  const discountAmount = (appliedCoupon && typeof appliedCoupon.discount === 'number') 
+  // Discount should only apply to product subtotal, not delivery fee
+  const discountAmount = (appliedCoupon && typeof appliedCoupon.discount === 'number' && appliedCoupon.discount > 0) 
     ? total * (appliedCoupon.discount / 100) 
     : 0;
+  
+  
   const subtotalAfterDiscount = total - discountAmount;
   const finalTotal = subtotalAfterDiscount + deliveryFee;
 
   const couponMutation = useMutation({
     mutationFn: async (code: string) => {
-      return await apiRequest("POST", "/api/coupons/validate", { code });
+      const response = await apiRequest("POST", "/api/coupons/validate", { code });
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setAppliedCoupon({ code: couponCode, discount: data.discount });
       setCouponError("");
       toast({

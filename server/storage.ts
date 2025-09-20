@@ -254,7 +254,11 @@ export class DatabaseStorage implements IStorage {
       });
 
       const discountAmountCents = Math.round(subtotalCents * (coupon.discountPercentage / 100));
-      const finalTotalCents = Math.max(0, subtotalCents - discountAmountCents);
+      const subtotalAfterDiscountCents = Math.max(0, subtotalCents - discountAmountCents);
+      
+      // Add delivery fee (R$ 5.00 = 500 cents)
+      const deliveryFeeCents = subtotalCents > 0 ? 500 : 0;
+      const finalTotalCents = subtotalAfterDiscountCents + deliveryFeeCents;
       
       // Convert to decimal strings
       const subtotal = (subtotalCents / 100).toFixed(2);
