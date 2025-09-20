@@ -12,7 +12,7 @@ export async function seedDatabase() {
       return;
     }
 
-    // Create categories
+    // Create categories with batch processing
     const categories = [
       {
         name: "Clássicos",
@@ -36,11 +36,22 @@ export async function seedDatabase() {
       }
     ];
 
+    console.log("📋 Creating categories...");
     const createdCategories = [];
+    
+    // Create categories with proper error handling and small batches
     for (const category of categories) {
-      const created = await storage.createCategory(category as InsertCategory);
-      createdCategories.push(created);
-      console.log(`✅ Created category: ${created.name}`);
+      try {
+        const created = await storage.createCategory(category as InsertCategory);
+        createdCategories.push(created);
+        console.log(`✅ Created category: ${created.name}`);
+        
+        // Small delay to prevent connection issues
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`❌ Failed to create category ${category.name}:`, error);
+        throw error;
+      }
     }
 
     // Find category IDs
@@ -203,13 +214,29 @@ export async function seedDatabase() {
       }
     ];
 
-    // Create products
-    for (const product of products) {
-      try {
-        const created = await storage.createProduct(product as InsertProduct);
-        console.log(`✅ Created product: ${created.name} - R$ ${created.price}`);
-      } catch (error) {
-        console.error(`❌ Error creating product ${product.name}:`, error);
+    console.log("🍰 Creating products...");
+    
+    // Create products in smaller batches with error handling
+    const batchSize = 3;
+    for (let i = 0; i < products.length; i += batchSize) {
+      const batch = products.slice(i, i + batchSize);
+      
+      for (const product of batch) {
+        try {
+          const created = await storage.createProduct(product as InsertProduct);
+          console.log(`✅ Created product: ${created.name} - R$ ${created.price}`);
+          
+          // Small delay to prevent connection overload
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`❌ Error creating product ${product.name}:`, error);
+        }
+      }
+      
+      // Longer pause between batches
+      if (i + batchSize < products.length) {
+        console.log(`📦 Processed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(products.length / batchSize)}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
@@ -217,5 +244,7 @@ export async function seedDatabase() {
     
   } catch (error) {
     console.error("❌ Error seeding database:", error);
+    // Don't throw the error so the server can still start
+    console.log("⚠️ Server will continue to run despite seeding error");
   }
 }

@@ -359,6 +359,8 @@ export class DatabaseStorage implements IStorage {
         status: orders.status,
         total: orders.total,
         deliveryAddress: orders.deliveryAddress,
+        appliedCouponCode: orders.appliedCouponCode,
+        discountAmount: orders.discountAmount,
         createdAt: orders.createdAt,
         user: users,
         orderItems: orderItems,
