@@ -241,33 +241,39 @@ export default function Profile() {
                   orders.slice(0, 3).map((order: any) => {
                     const statusInfo = formatOrderStatus(order.status);
                     return (
-                      <div 
+                      <Link 
                         key={order.id} 
-                        className="border border-border rounded-xl p-4 hover:bg-accent transition-colors"
-                        data-testid={`order-${order.id}`}
+                        href={`/order/${order.id}`}
+                        className="block"
+                        data-testid={`link-order-${order.id}`}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm font-medium text-foreground">
-                              Pedido #{order.id.slice(-8)}
+                        <div 
+                          className="border border-border rounded-xl p-4 hover:bg-accent transition-colors cursor-pointer"
+                          data-testid={`order-${order.id}`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-sm font-medium text-foreground">
+                                Pedido #{order.id.slice(-8)}
+                              </span>
+                              <Badge variant={statusInfo.variant} className="text-xs">
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
                             </span>
-                            <Badge variant={statusInfo.variant} className="text-xs">
-                              {statusInfo.label}
-                            </Badge>
                           </div>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground">
-                            Total do pedido
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                              Total do pedido
+                            </div>
+                            <span className="font-bold text-primary">
+                              R$ {parseFloat(order.total).toFixed(2).replace('.', ',')}
+                            </span>
                           </div>
-                          <span className="font-bold text-primary">
-                            R$ {parseFloat(order.total).toFixed(2).replace('.', ',')}
-                          </span>
                         </div>
-                      </div>
+                      </Link>
                     );
                   })
                 ) : (

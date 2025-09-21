@@ -14,6 +14,7 @@ import Catalog from "@/pages/Catalog";
 import ProductDetail from "@/pages/ProductDetail";
 import Cart from "@/pages/Cart";
 import Profile from "@/pages/Profile";
+import OrderTracking from "@/pages/OrderTracking";
 import Admin from "@/pages/Admin";
 import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
@@ -47,6 +48,7 @@ function Router() {
         <Route path="/cart" component={Cart} />
         <Route path="/about" component={About} />
         <Route path="/profile" component={Profile} />
+        <Route path="/order/:id" component={OrderTracking} />
         <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>

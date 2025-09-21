@@ -21,6 +21,7 @@ import {
   type InsertCartItem,
   type InsertOrder,
   type InsertOrderItem,
+  type CreateOrderItem,
   type InsertFavorite,
   type InsertCoupon,
 } from "@shared/schema";
@@ -53,10 +54,11 @@ export interface IStorage {
   clearCart(userId: string): Promise<void>;
   
   // Order operations
-  createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
-  createOrderWithCoupon(userId: string, deliveryAddress: string, items: InsertOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }>;
+  createOrder(order: InsertOrder, items: CreateOrderItem[]): Promise<Order>;
+  createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
+  getOrderWithItems(userId: string, orderId: string): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined>;
   
   // Favorites operations
   getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]>;
@@ -216,7 +218,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order operations
-  async createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<Order> {
+  async createOrder(order: InsertOrder, items: CreateOrderItem[]): Promise<Order> {
     const [newOrder] = await db.insert(orders).values(order).returning();
     
     await db.insert(orderItems).values(
@@ -226,7 +228,7 @@ export class DatabaseStorage implements IStorage {
     return newOrder;
   }
 
-  async createOrderWithCoupon(userId: string, deliveryAddress: string, items: InsertOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }> {
+  async createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }> {
     return await db.transaction(async (tx) => {
       // Lock and validate coupon within transaction
       const normalized = couponCode.trim().toUpperCase();
@@ -303,6 +305,34 @@ export class DatabaseStorage implements IStorage {
   async getOrder(id: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
     return order;
+  }
+
+  async getOrderWithItems(userId: string, orderId: string): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined> {
+    // First get the order and verify ownership
+    const order = await this.getOrder(orderId);
+    if (!order || order.userId !== userId) {
+      return undefined;
+    }
+
+    // Get order items with product details
+    const orderItemsWithProducts = await db
+      .select({
+        id: orderItems.id,
+        orderId: orderItems.orderId,
+        productId: orderItems.productId,
+        quantity: orderItems.quantity,
+        price: orderItems.price,
+        product: products,
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.productId, products.id))
+      .where(eq(orderItems.orderId, orderId));
+
+    // Return order with items array
+    return {
+      ...order,
+      orderItems: orderItemsWithProducts
+    };
   }
 
   // Favorites operations

@@ -203,6 +203,11 @@ export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
   id: true,
 });
 
+// Schema for creating order items without orderId (used during order creation)
+export const createOrderItemSchema = insertOrderItemSchema.omit({
+  orderId: true,
+});
+
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   id: true,
   createdAt: true,
@@ -230,5 +235,6 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type CreateOrderItem = z.infer<typeof createOrderItemSchema>;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;

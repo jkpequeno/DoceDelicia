@@ -1,8 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
-import { insertCartItemSchema, insertFavoriteSchema } from "@shared/schema";
+import { insertCartItemSchema, insertFavoriteSchema, orders, orderItems, products } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -156,6 +158,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get('/api/orders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      // Get order with items using storage interface
+      const orderWithItems = await storage.getOrderWithItems(userId, id);
+      
+      if (!orderWithItems) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.json(orderWithItems);
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
     }
   });
 
