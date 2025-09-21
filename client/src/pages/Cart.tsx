@@ -654,21 +654,6 @@ export default function Cart() {
               <div className="space-y-3 mb-6">
                 <div 
                   className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                    selectedPaymentMethod === 'card' 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => handlePaymentMethodSelect('card')}
-                  data-testid="option-payment-card"
-                >
-                  <span className="text-lg">💳</span>
-                  <div>
-                    <p className="font-medium text-foreground">Cartão de Crédito/Débito</p>
-                    <p className="text-sm text-muted-foreground">Visa, Mastercard, Elo</p>
-                  </div>
-                </div>
-                <div 
-                  className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
                     selectedPaymentMethod === 'pix' 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50'
