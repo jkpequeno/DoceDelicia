@@ -509,7 +509,10 @@ export default function Cart() {
               {/* Product Miniatures Grid */}
               {products && Array.isArray(products) && products.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
-                  {products.slice(0, 5).map((product) => (
+                  {products
+                    .filter((product) => !items.some((item) => item.productId === product.id))
+                    .slice(0, 6)
+                    .map((product) => (
                     <div 
                       key={product.id} 
                       className="bg-background rounded-lg p-3 border border-border hover:shadow-md transition-shadow"
