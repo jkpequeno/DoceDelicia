@@ -27,6 +27,7 @@ export default function Cart() {
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
+
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
     cep: "",
