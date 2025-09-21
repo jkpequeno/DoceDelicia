@@ -12,15 +12,21 @@ import { Label } from "@/components/ui/label";
 import { Minus, Plus, Trash2, ShoppingBag, MapPin, CheckCircle, XCircle, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import type { Product } from "@shared/schema";
 
 export default function Cart() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading } = useCart();
+  const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading, addToCart } = useCart();
   const { cep, available, city, state, setCep, setDeliveryInfo } = useDelivery();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch products for the "continuar comprando" section
+  const { data: products } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
     cep: "",
@@ -499,9 +505,49 @@ export default function Cart() {
             <div className="bg-accent border border-border rounded-2xl p-6">
               <h3 className="font-serif font-bold text-foreground mb-4">Continuar Comprando</h3>
               <p className="text-muted-foreground mb-4">Que tal adicionar mais sabores especiais?</p>
+              
+              {/* Product Miniatures Grid */}
+              {products && Array.isArray(products) && products.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
+                  {products.slice(0, 5).map((product) => (
+                    <div 
+                      key={product.id} 
+                      className="bg-background rounded-lg p-3 border border-border hover:shadow-md transition-shadow"
+                      data-testid={`mini-product-${product.id}`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={product.imageUrl} 
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded-lg"
+                          data-testid={`img-mini-product-${product.id}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-foreground truncate" data-testid={`text-mini-product-name-${product.id}`}>
+                            {product.name}
+                          </h4>
+                          <p className="text-xs text-primary font-semibold" data-testid={`text-mini-product-price-${product.id}`}>
+                            R$ {parseFloat(product.price).toFixed(2).replace('.', ',')}
+                          </p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          onClick={() => addToCart(product.id)}
+                          className="bg-primary hover:bg-primary/90 px-3 py-1 text-xs"
+                          data-testid={`button-add-mini-product-${product.id}`}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <Link href="/catalog" data-testid="link-continue-shopping">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Ver Catálogo
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
+                  Ver Catálogo Completo
                 </Button>
               </Link>
             </div>
