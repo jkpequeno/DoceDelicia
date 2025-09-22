@@ -495,6 +495,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Address routes
+  app.get('/api/addresses', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const addresses = await storage.getUserAddresses(userId);
+      res.json(addresses);
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+      res.status(500).json({ message: "Erro ao buscar endereços" });
+    }
+  });
+
+  app.post('/api/addresses', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Validate input using Zod schema
+      const addressSchema = z.object({
+        name: z.string().min(1, "Nome é obrigatório"),
+        cep: z.string().regex(/^\d{8}$|^\d{5}-?\d{3}$/, "CEP inválido"),
+        street: z.string().min(1, "Rua é obrigatória"),
+        number: z.string().min(1, "Número é obrigatório"),
+        complement: z.string().optional(),
+        neighborhood: z.string().min(1, "Bairro é obrigatório"),
+        city: z.string().min(1, "Cidade é obrigatória"),
+        state: z.string().min(2, "Estado é obrigatório").max(2, "Estado deve ter 2 caracteres"),
+        isDefault: z.boolean().optional().default(false)
+      });
+
+      const validatedData = addressSchema.parse(req.body);
+      const addressData = {
+        ...validatedData,
+        userId,
+        cep: validatedData.cep.replace(/\D/g, ''), // Clean CEP
+      };
+
+      const address = await storage.createAddress(addressData);
+      res.json(address);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos",
+          errors: error.errors
+        });
+      }
+      console.error("Error creating address:", error);
+      res.status(500).json({ message: "Erro ao criar endereço" });
+    }
+  });
+
+  app.put('/api/addresses/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      // Validate input using Zod schema (all fields optional for updates)
+      const updateAddressSchema = z.object({
+        name: z.string().min(1, "Nome é obrigatório").optional(),
+        cep: z.string().regex(/^\d{8}$|^\d{5}-?\d{3}$/, "CEP inválido").optional(),
+        street: z.string().min(1, "Rua é obrigatória").optional(),
+        number: z.string().min(1, "Número é obrigatório").optional(),
+        complement: z.string().optional(),
+        neighborhood: z.string().min(1, "Bairro é obrigatório").optional(),
+        city: z.string().min(1, "Cidade é obrigatória").optional(),
+        state: z.string().min(2, "Estado é obrigatório").max(2, "Estado deve ter 2 caracteres").optional(),
+        isDefault: z.boolean().optional()
+      });
+
+      const validatedData = updateAddressSchema.parse(req.body);
+      
+      // Clean CEP if provided
+      if (validatedData.cep) {
+        validatedData.cep = validatedData.cep.replace(/\D/g, '');
+      }
+
+      const address = await storage.updateAddress(id, userId, validatedData);
+      res.json(address);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos",
+          errors: error.errors
+        });
+      }
+      if (error instanceof Error && error.message === 'Endereço não encontrado') {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error("Error updating address:", error);
+      res.status(500).json({ message: "Erro ao atualizar endereço" });
+    }
+  });
+
+  app.delete('/api/addresses/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      await storage.deleteAddress(id, userId);
+      res.json({ message: "Endereço removido com sucesso" });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Endereço não encontrado') {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error("Error deleting address:", error);
+      res.status(500).json({ message: "Erro ao remover endereço" });
+    }
+  });
+
+  app.put('/api/addresses/:id/default', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const address = await storage.setDefaultAddress(id, userId);
+      res.json(address);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Endereço não encontrado') {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error("Error setting default address:", error);
+      res.status(500).json({ message: "Erro ao definir endereço padrão" });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
