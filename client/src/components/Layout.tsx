@@ -42,7 +42,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex justify-start">
               <Link href="/" className="flex items-center space-x-1 sm:space-x-2 cursor-pointer" data-testid="link-home">
                 <div className="text-2xl sm:text-3xl lg:text-4xl transform hover:scale-110 transition-transform duration-200">🧁</div>
-                <h1 className="text-base sm:text-xl lg:text-2xl font-serif font-bold text-primary whitespace-nowrap">Doce Delícia</h1>
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-primary whitespace-nowrap">Doce Delícia</h1>
               </Link>
             </div>
             
