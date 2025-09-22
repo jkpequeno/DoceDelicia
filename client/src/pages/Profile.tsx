@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
@@ -45,6 +46,7 @@ export default function Profile() {
     city: "",
     state: ""
   });
+  const [setAsDefault, setSetAsDefault] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
@@ -197,6 +199,7 @@ export default function Profile() {
       city: "",
       state: ""
     });
+    setSetAsDefault(false);
     setFormErrors([]);
     setEditingAddress(null);
   };
@@ -213,6 +216,7 @@ export default function Profile() {
       city: address.city,
       state: address.state
     });
+    setSetAsDefault(address.isDefault || false);
     setIsAddressDialogOpen(true);
   };
 
@@ -241,11 +245,10 @@ export default function Profile() {
       neighborhood: addressForm.neighborhood,
       city: addressForm.city,
       state: addressForm.state.toUpperCase(),
-      // Preserve existing isDefault status when editing
-      // Set as default if it's the first address, otherwise false for new addresses
+      // Use checkbox value, but for first address default to true if checkbox is not explicitly set
       isDefault: editingAddress 
-        ? editingAddress.isDefault 
-        : (addresses?.length === 0 || !addresses)
+        ? setAsDefault 
+        : setAsDefault || (addresses?.length === 0 || !addresses)
     };
 
     if (editingAddress) {
@@ -696,6 +699,18 @@ export default function Profile() {
                             ))}
                           </div>
                         )}
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="setAsDefault"
+                            checked={setAsDefault}
+                            onCheckedChange={setSetAsDefault}
+                            data-testid="checkbox-set-default"
+                          />
+                          <Label htmlFor="setAsDefault" className="text-sm cursor-pointer">
+                            Definir como endereço padrão
+                          </Label>
+                        </div>
 
                         <div className="flex gap-2">
                           <Button 
