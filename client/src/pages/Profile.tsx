@@ -241,8 +241,11 @@ export default function Profile() {
       neighborhood: addressForm.neighborhood,
       city: addressForm.city,
       state: addressForm.state.toUpperCase(),
-      // Preserve existing isDefault status when editing, set false for new addresses
-      isDefault: editingAddress ? editingAddress.isDefault : false
+      // Preserve existing isDefault status when editing
+      // Set as default if it's the first address, otherwise false for new addresses
+      isDefault: editingAddress 
+        ? editingAddress.isDefault 
+        : (addresses?.length === 0 || !addresses)
     };
 
     if (editingAddress) {
