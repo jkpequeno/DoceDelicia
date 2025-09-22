@@ -745,44 +745,44 @@ export default function Profile() {
                           <p>CEP: {address.cep}</p>
                         </div>
                         
-                        <div className="flex flex-col sm:flex-row gap-2 pt-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3">
                           {!address.isDefault && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setDefaultMutation.mutate(address.id)}
                               disabled={setDefaultMutation.isPending}
-                              className="w-full sm:w-auto text-xs lg:text-sm"
+                              className="col-span-2 sm:col-span-1 text-xs lg:text-sm h-8"
                               data-testid={`button-set-default-${address.id}`}
                             >
                               <Star className="h-3 w-3 mr-1" />
-                              <span className="hidden sm:inline">Definir como padrão</span>
+                              <span className="hidden sm:inline">Definir padrão</span>
                               <span className="sm:hidden">Padrão</span>
                             </Button>
                           )}
-                          <div className="flex gap-2 w-full sm:w-auto">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditAddress(address)}
-                              className="flex-1 sm:flex-none text-xs lg:text-sm"
-                              data-testid={`button-edit-${address.id}`}
-                            >
-                              <Pencil className="h-3 w-3 mr-1" />
-                              Editar
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteAddress(address.id)}
-                              disabled={deleteAddressMutation.isPending}
-                              className="flex-1 sm:flex-none text-xs lg:text-sm"
-                              data-testid={`button-delete-${address.id}`}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Remover
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditAddress(address)}
+                            className={`text-xs lg:text-sm h-8 ${!address.isDefault ? '' : 'col-span-1'}`}
+                            data-testid={`button-edit-${address.id}`}
+                          >
+                            <Pencil className="h-3 w-3 mr-1" />
+                            <span className="hidden sm:inline">Editar</span>
+                            <span className="sm:hidden">Edit</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteAddress(address.id)}
+                            disabled={deleteAddressMutation.isPending}
+                            className={`text-xs lg:text-sm h-8 ${!address.isDefault ? '' : 'col-span-1'}`}
+                            data-testid={`button-delete-${address.id}`}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            <span className="hidden sm:inline">Remover</span>
+                            <span className="sm:hidden">Del</span>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
