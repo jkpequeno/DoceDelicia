@@ -320,60 +320,66 @@ export default function Profile() {
           Meu Perfil
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Sidebar */}
-          <div className="space-y-6">
-            <div className="bg-card rounded-2xl p-6 text-center shadow-lg">
-              <div className="w-24 h-24 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center text-primary-foreground text-3xl font-bold" data-testid="avatar-initials">
-                {getInitials(typedUser?.firstName, typedUser?.lastName)}
-              </div>
-              <h2 className="text-xl font-serif font-bold text-foreground mb-2" data-testid="text-user-name">
-                {typedUser?.firstName && typedUser?.lastName 
-                  ? `${typedUser.firstName} ${typedUser.lastName}`
-                  : typedUser?.email || 'Usuário'
-                }
-              </h2>
-              <p className="text-muted-foreground mb-4" data-testid="text-user-email">
-                {typedUser?.email}
-              </p>
-              <div className="flex items-center justify-center space-x-4 text-sm">
-                <div className="text-center">
-                  <div className="font-bold text-primary" data-testid="text-total-orders">
-                    {orders?.length || 0}
-                  </div>
-                  <div className="text-muted-foreground">Pedidos</div>
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
+          {/* Profile Sidebar - Mobile optimized */}
+          <div className="lg:space-y-6">
+            <div className="bg-card rounded-2xl p-4 lg:p-6 text-center shadow-lg">
+              <div className="flex flex-col sm:flex-row lg:flex-col items-center gap-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-lg sm:text-2xl lg:text-3xl font-bold" data-testid="avatar-initials">
+                  {getInitials(typedUser?.firstName, typedUser?.lastName)}
                 </div>
-                <div className="text-center">
-                  <div className="font-bold text-primary" data-testid="text-total-favorites">
-                    {favorites?.length || 0}
+                <div className="text-center sm:text-left lg:text-center flex-1">
+                  <h2 className="text-lg sm:text-xl font-serif font-bold text-foreground mb-1 lg:mb-2" data-testid="text-user-name">
+                    {typedUser?.firstName && typedUser?.lastName 
+                      ? `${typedUser.firstName} ${typedUser.lastName}`
+                      : typedUser?.email || 'Usuário'
+                    }
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-2 lg:mb-4" data-testid="text-user-email">
+                    {typedUser?.email}
+                  </p>
+                  <div className="flex items-center justify-center sm:justify-start lg:justify-center space-x-6 text-sm">
+                    <div className="text-center">
+                      <div className="font-bold text-primary" data-testid="text-total-orders">
+                        {orders?.length || 0}
+                      </div>
+                      <div className="text-muted-foreground">Pedidos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-primary" data-testid="text-total-favorites">
+                        {favorites?.length || 0}
+                      </div>
+                      <div className="text-muted-foreground">Favoritos</div>
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">Favoritos</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-card rounded-2xl p-6 shadow-lg">
-              <h3 className="font-serif font-bold text-foreground mb-4">Menu</h3>
-              <nav className="space-y-2">
+            <div className="bg-card rounded-2xl p-4 lg:p-6 shadow-lg">
+              <h3 className="font-serif font-bold text-foreground mb-4 hidden lg:block">Menu</h3>
+              <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                 <button 
                   onClick={() => document.getElementById('personal-data')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer whitespace-nowrap lg:w-full text-left"
                   data-testid="nav-personal-data"
                 >
                   <UserIcon className="w-5 h-5" />
-                  <span>Dados Pessoais</span>
+                  <span className="hidden sm:inline">Dados Pessoais</span>
+                  <span className="sm:hidden">Dados</span>
                 </button>
                 <button 
                   onClick={() => document.getElementById('orders')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer whitespace-nowrap lg:w-full text-left"
                   data-testid="nav-orders"
                 >
                   <FileText className="w-5 h-5" />
-                  <span>Histórico de Pedidos</span>
+                  <span className="hidden sm:inline">Histórico de Pedidos</span>
+                  <span className="sm:hidden">Pedidos</span>
                 </button>
                 <button 
                   onClick={() => document.getElementById('addresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer whitespace-nowrap lg:w-full text-left"
                   data-testid="nav-addresses"
                 >
                   <MapPin className="w-5 h-5" />
@@ -381,7 +387,7 @@ export default function Profile() {
                 </button>
                 <button 
                   onClick={() => document.getElementById('favorites')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer whitespace-nowrap lg:w-full text-left"
                   data-testid="nav-favorites"
                 >
                   <Heart className="w-5 h-5" />
@@ -389,7 +395,7 @@ export default function Profile() {
                 </button>
                 <a 
                   href="/api/logout" 
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive cursor-pointer"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive cursor-pointer whitespace-nowrap"
                   data-testid="link-logout"
                 >
                   <LogOut className="w-5 h-5" />
@@ -402,15 +408,15 @@ export default function Profile() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Data Section */}
-            <div id="personal-data" className="bg-card rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-serif font-bold text-foreground">Dados Pessoais</h3>
-                <Button variant="ghost" className="text-primary hover:underline" data-testid="button-edit-profile">
+            <div id="personal-data" className="bg-card rounded-2xl p-4 lg:p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-xl font-serif font-bold text-foreground">Dados Pessoais</h3>
+                <Button variant="ghost" className="text-primary hover:underline text-sm lg:text-base" data-testid="button-edit-profile">
                   Editar
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                 <div>
                   <Label htmlFor="firstName" className="text-sm font-medium text-foreground mb-2">
                     Nome
@@ -536,19 +542,19 @@ export default function Profile() {
             </div>
 
             {/* Addresses Section */}
-            <div id="addresses" className="bg-card rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-serif font-bold text-foreground">Meus Endereços</h3>
+            <div id="addresses" className="bg-card rounded-2xl p-4 lg:p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-xl font-serif font-bold text-foreground">Meus Endereços</h3>
               </div>
 
               {addressesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                   {[...Array(3)].map((_, i) => (
                     <Skeleton key={i} className="h-48 w-full rounded-lg" />
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                   {/* Add new address card */}
                   <Dialog open={isAddressDialogOpen} onOpenChange={(open) => {
                     setIsAddressDialogOpen(open);
@@ -565,14 +571,14 @@ export default function Profile() {
                         </CardContent>
                       </Card>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                           <MapPin className="h-5 w-5" />
                           {editingAddress ? "Editar Endereço" : "Novo Endereço"}
                         </DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-4">
+                      <div className="space-y-4 px-1">
                         <div>
                           <Label htmlFor="name">Nome do Endereço *</Label>
                           <Input
@@ -611,7 +617,7 @@ export default function Profile() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
                             <Label htmlFor="street">Logradouro *</Label>
                             <Input
@@ -714,15 +720,15 @@ export default function Profile() {
                   {/* Address cards */}
                   {addresses?.map((address) => (
                     <Card key={address.id} className={`relative ${address.isDefault ? 'ring-2 ring-primary' : ''}`} data-testid={`card-address-${address.id}`}>
-                      <CardHeader className="pb-3">
+                      <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="flex items-center gap-2 text-lg">
+                          <div className="flex-1">
+                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
                               <Home className="h-4 w-4" />
                               {address.name}
                             </CardTitle>
                             {address.isDefault && (
-                              <Badge variant="default" className="mt-1" data-testid={`badge-default-${address.id}`}>
+                              <Badge variant="default" className="mt-1 text-xs" data-testid={`badge-default-${address.id}`}>
                                 <Star className="h-3 w-3 mr-1" />
                                 Padrão
                               </Badge>
@@ -730,47 +736,53 @@ export default function Profile() {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="text-sm text-muted-foreground">
-                          <p>{address.street}, {address.number}</p>
-                          {address.complement && <p>{address.complement}</p>}
+                      <CardContent className="space-y-3 p-3 lg:p-6 pt-0">
+                        <div className="text-xs lg:text-sm text-muted-foreground">
+                          <p className="break-words">{address.street}, {address.number}</p>
+                          {address.complement && <p className="break-words">{address.complement}</p>}
                           <p>{address.neighborhood}</p>
                           <p>{address.city} - {address.state}</p>
                           <p>CEP: {address.cep}</p>
                         </div>
                         
-                        <div className="flex gap-2 pt-3">
+                        <div className="flex flex-col sm:flex-row gap-2 pt-3">
                           {!address.isDefault && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setDefaultMutation.mutate(address.id)}
                               disabled={setDefaultMutation.isPending}
+                              className="w-full sm:w-auto text-xs lg:text-sm"
                               data-testid={`button-set-default-${address.id}`}
                             >
                               <Star className="h-3 w-3 mr-1" />
-                              Definir como padrão
+                              <span className="hidden sm:inline">Definir como padrão</span>
+                              <span className="sm:hidden">Padrão</span>
                             </Button>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditAddress(address)}
-                            data-testid={`button-edit-${address.id}`}
-                          >
-                            <Pencil className="h-3 w-3 mr-1" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteAddress(address.id)}
-                            disabled={deleteAddressMutation.isPending}
-                            data-testid={`button-delete-${address.id}`}
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Remover
-                          </Button>
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditAddress(address)}
+                              className="flex-1 sm:flex-none text-xs lg:text-sm"
+                              data-testid={`button-edit-${address.id}`}
+                            >
+                              <Pencil className="h-3 w-3 mr-1" />
+                              Editar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteAddress(address.id)}
+                              disabled={deleteAddressMutation.isPending}
+                              className="flex-1 sm:flex-none text-xs lg:text-sm"
+                              data-testid={`button-delete-${address.id}`}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Remover
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -779,12 +791,12 @@ export default function Profile() {
               )}
 
               {addresses && addresses.length === 0 && !addressesLoading && (
-                <div className="text-center py-16" data-testid="empty-addresses">
-                  <MapPin className="h-24 w-24 mx-auto text-muted-foreground mb-6" />
-                  <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
+                <div className="text-center py-8 lg:py-16" data-testid="empty-addresses">
+                  <MapPin className="h-16 w-16 lg:h-24 lg:w-24 mx-auto text-muted-foreground mb-4 lg:mb-6" />
+                  <h2 className="text-xl lg:text-2xl font-serif font-bold text-foreground mb-3 lg:mb-4">
                     Nenhum endereço cadastrado
                   </h2>
-                  <p className="text-muted-foreground mb-8">
+                  <p className="text-muted-foreground mb-6 lg:mb-8">
                     Adicione um endereço para facilitar seus pedidos futuros
                   </p>
                 </div>
@@ -792,8 +804,8 @@ export default function Profile() {
             </div>
 
             {/* Favorites Section */}
-            <div id="favorites" className="bg-card rounded-2xl p-6 shadow-lg">
-              <h3 className="text-xl font-serif font-bold text-foreground mb-6">Produtos Favoritos</h3>
+            <div id="favorites" className="bg-card rounded-2xl p-4 lg:p-6 shadow-lg">
+              <h3 className="text-lg lg:text-xl font-serif font-bold text-foreground mb-4 lg:mb-6">Produtos Favoritos</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {favoritesLoading ? (
