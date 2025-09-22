@@ -57,79 +57,107 @@ export default function Catalog() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-serif font-bold text-foreground mb-4" data-testid="text-catalog-title">
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-foreground mb-3 sm:mb-4" data-testid="text-catalog-title">
           Nosso Catálogo
         </h1>
-        <p className="text-xl text-muted-foreground" data-testid="text-catalog-description">
+        <p className="text-lg sm:text-xl text-muted-foreground px-4" data-testid="text-catalog-description">
           Descubra todos os nossos sabores especiais
         </p>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-card rounded-2xl p-6 mb-8 shadow-lg">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 items-center w-full lg:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Input
-                type="text"
-                placeholder="Buscar cupcakes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            </div>
-            
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-category">
-                <SelectValue placeholder="Todas as Categorias" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Categorias</SelectItem>
-                {(categories as Category[] || []).map((category: Category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-price">
-                <SelectValue placeholder="Todas as Faixas de Preço" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Faixas de Preço</SelectItem>
-                <SelectItem value="5-8">R$ 5 - R$ 8</SelectItem>
-                <SelectItem value="8-12">R$ 8 - R$ 12</SelectItem>
-                <SelectItem value="12+">R$ 12+</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="bg-card rounded-2xl p-4 sm:p-6 mb-8 shadow-lg">
+        <div className="flex flex-col gap-4">
+          {/* Search bar - always full width on mobile */}
+          <div className="relative w-full">
+            <Input
+              type="text"
+              placeholder="Buscar cupcakes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11"
+              data-testid="input-search"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           </div>
           
-          <div className="flex items-center space-x-2 w-full lg:w-auto">
-            <span className="text-muted-foreground whitespace-nowrap">Ordenar por:</span>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-sort">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="popular">Mais Populares</SelectItem>
-                <SelectItem value="price-low">Menor Preço</SelectItem>
-                <SelectItem value="price-high">Maior Preço</SelectItem>
-                <SelectItem value="name">Nome A-Z</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Filters row - responsive layout */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Category filter */}
+            <div className="flex-1">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full h-11" data-testid="select-category">
+                  <SelectValue placeholder="Todas as Categorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {(categories as Category[] || []).map((category: Category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Price filter */}
+            <div className="flex-1">
+              <Select value={priceRange} onValueChange={setPriceRange}>
+                <SelectTrigger className="w-full h-11" data-testid="select-price">
+                  <SelectValue placeholder="Faixa de Preço" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Faixas</SelectItem>
+                  <SelectItem value="5-8">R$ 5 - R$ 8</SelectItem>
+                  <SelectItem value="8-12">R$ 8 - R$ 12</SelectItem>
+                  <SelectItem value="12+">R$ 12+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Sort filter */}
+            <div className="flex-1">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full h-11" data-testid="select-sort">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">Mais Populares</SelectItem>
+                  <SelectItem value="price-low">Menor Preço</SelectItem>
+                  <SelectItem value="price-high">Maior Preço</SelectItem>
+                  <SelectItem value="name">Nome A-Z</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          
+          {/* Quick clear button on mobile when filters are active */}
+          {(searchQuery || selectedCategory || priceRange || sortBy !== "popular") && (
+            <div className="flex justify-center sm:justify-end">
+              <Button 
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("");
+                  setPriceRange("");
+                  setSortBy("popular");
+                }}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                data-testid="button-clear-all-filters"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {productsLoading ? (
           Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="bg-card rounded-2xl overflow-hidden">
