@@ -81,11 +81,11 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/catalog" data-testid="link-hero-catalog">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[140px]">
                     Ver Catálogo
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" data-testid="button-hero-about">
+                <Button variant="outline" size="lg" className="min-w-[140px]" data-testid="button-hero-about">
                   Sobre Nós
                 </Button>
               </div>
