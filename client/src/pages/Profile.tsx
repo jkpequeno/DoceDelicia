@@ -140,10 +140,12 @@ export default function Profile() {
                   <FileText className="w-5 h-5" />
                   <span>Histórico de Pedidos</span>
                 </div>
-                <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer">
-                  <MapPin className="w-5 h-5" />
-                  <span>Endereços</span>
-                </div>
+                <Link href="/addresses" data-testid="link-addresses">
+                  <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer">
+                    <MapPin className="w-5 h-5" />
+                    <span>Endereços</span>
+                  </div>
+                </Link>
                 <div className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer">
                   <Heart className="w-5 h-5" />
                   <span>Favoritos</span>

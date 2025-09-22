@@ -16,6 +16,7 @@ import Cart from "@/pages/Cart";
 import Profile from "@/pages/Profile";
 import Orders from "@/pages/Orders";
 import OrderTracking from "@/pages/OrderTracking";
+import Addresses from "@/pages/Addresses";
 import Admin from "@/pages/Admin";
 import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
@@ -51,6 +52,7 @@ function Router() {
         <Route path="/profile" component={Profile} />
         <Route path="/orders" component={Orders} />
         <Route path="/order/:id" component={OrderTracking} />
+        <Route path="/addresses" component={Addresses} />
         <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>
