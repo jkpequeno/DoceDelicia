@@ -36,13 +36,13 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
           <div className="grid grid-cols-3 items-center">
             {/* Left section - Logo */}
-            <div className="flex justify-start">
-              <Link href="/" className="flex items-center space-x-2 cursor-pointer" data-testid="link-home">
-                <div className="text-4xl transform hover:scale-110 transition-transform duration-200">🧁</div>
-                <h1 className="text-2xl font-serif font-bold text-primary">Doce Delícia</h1>
+            <div className="flex justify-start overflow-hidden">
+              <Link href="/" className="flex items-center space-x-1 sm:space-x-2 cursor-pointer" data-testid="link-home">
+                <div className="text-2xl sm:text-3xl lg:text-4xl transform hover:scale-110 transition-transform duration-200">🧁</div>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-serif font-bold text-primary truncate">Doce Delícia</h1>
               </Link>
             </div>
             
@@ -63,17 +63,17 @@ export default function Layout({ children }: LayoutProps) {
             </nav>
 
             {/* Right section - Auth/Profile buttons */}
-            <div className="flex items-center justify-end space-x-4">
+            <div className="flex items-center justify-end space-x-1 sm:space-x-2 lg:space-x-4">
               {/* Cart Icon - Only show when authenticated */}
               {isAuthenticated && (
-                <Link href="/cart" data-testid="link-cart">
+                <Link href="/cart" data-testid="link-cart" className="hidden sm:block">
                   <Button 
                     size="icon" 
                     className="relative bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    <ShoppingCart className="h-5 w-5" />
+                    <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                     {itemCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-2 py-1 text-xs min-w-[20px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
+                      <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs min-w-[18px] sm:min-w-[20px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
                         {itemCount}
                       </span>
                     )}
@@ -85,7 +85,7 @@ export default function Layout({ children }: LayoutProps) {
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="md:hidden" data-testid="button-menu">
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
@@ -113,13 +113,20 @@ export default function Layout({ children }: LayoutProps) {
                       )}
                     </Link>
                     {!isAuthenticated && (
-                      <div className="border-t pt-4">
+                      <div className="border-t pt-4 space-y-3">
                         <a
                           href="/api/login"
                           className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 font-medium block text-center"
                           data-testid="button-mobile-login"
                         >
                           Entrar
+                        </a>
+                        <a
+                          href="/api/login"
+                          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-200 font-medium block text-center"
+                          data-testid="button-mobile-register"
+                        >
+                          Criar Conta
                         </a>
                       </div>
                     )}
@@ -161,15 +168,16 @@ export default function Layout({ children }: LayoutProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <div className="hidden sm:flex items-center space-x-2">
+                  <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <a href="/api/login" data-testid="button-login">
                       Entrar
                     </a>
                   </Button>
-                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <a href="/api/login" data-testid="button-register">
-                      Criar Conta
+                      <span className="hidden lg:inline">Criar Conta</span>
+                      <span className="lg:hidden">Cadastro</span>
                     </a>
                   </Button>
                 </div>
