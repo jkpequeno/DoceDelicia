@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import type { Product } from "@shared/schema";
+import type { Product, Address } from "@shared/schema";
 
 export default function Cart() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -26,6 +26,12 @@ export default function Cart() {
   // Fetch products for the "continuar comprando" section
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  // Fetch user's saved addresses
+  const { data: savedAddresses } = useQuery<Address[]>({
+    queryKey: ["/api/addresses"],
+    enabled: isAuthenticated,
   });
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -45,6 +51,20 @@ export default function Cart() {
   const [couponError, setCouponError] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [showPixQr, setShowPixQr] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isCreatingNewAddress, setIsCreatingNewAddress] = useState(false);
+  const [shouldSaveAddress, setShouldSaveAddress] = useState(false);
+  const [addressName, setAddressName] = useState("");
+
+  // Auto-select default address when checkout opens
+  useEffect(() => {
+    if (isCheckoutOpen && savedAddresses && savedAddresses.length > 0) {
+      const defaultAddress = savedAddresses.find(addr => addr.isDefault);
+      if (defaultAddress && !selectedAddressId && !isCreatingNewAddress) {
+        setSelectedAddressId(defaultAddress.id);
+      }
+    }
+  }, [isCheckoutOpen, savedAddresses, selectedAddressId, isCreatingNewAddress]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -125,6 +145,16 @@ export default function Cart() {
       setCouponError(errorMessage);
       setAppliedCoupon(null);
     },
+  });
+
+  // Create address mutation
+  const createAddressMutation = useMutation({
+    mutationFn: async (addressData: any) => {
+      return await apiRequest("POST", "/api/addresses", addressData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/addresses"] });
+    }
   });
 
   const checkoutMutation = useMutation({
@@ -379,42 +409,99 @@ export default function Cart() {
     return normalizedCity === 'JOAO PESSOA' && normalizedState === 'PB';
   };
 
-  const handleCheckout = () => {
-    const addressValidationError = validateAddressForm();
-    if (addressValidationError) {
-      setAddressError(addressValidationError);
-      toast({
-        title: "Endereço inválido",
-        description: addressValidationError,
-        variant: "destructive",
-      });
+  const handleCheckout = async () => {
+    let deliveryAddress = "";
+    
+    if (selectedAddressId && savedAddresses) {
+      // Using saved address
+      const selectedAddress = savedAddresses.find(addr => addr.id === selectedAddressId);
+      if (!selectedAddress) {
+        setAddressError("Endereço selecionado não encontrado");
+        return;
+      }
+      
+      // Format saved address
+      deliveryAddress = [
+        selectedAddress.street,
+        selectedAddress.number,
+        selectedAddress.complement && selectedAddress.complement.trim() ? selectedAddress.complement : null,
+        selectedAddress.neighborhood,
+        selectedAddress.city,
+        selectedAddress.state,
+        selectedAddress.cep
+      ].filter(Boolean).join(', ');
+      
+      // Check delivery availability
+      if (!isDeliveryAvailable(selectedAddress.city, selectedAddress.state)) {
+        setAddressError("Entrega não disponível para esta localidade");
+        toast({
+          title: "Entrega não disponível", 
+          description: `Não entregamos em ${selectedAddress.city}, ${selectedAddress.state}. Atualmente entregamos apenas em João Pessoa, PB.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (isCreatingNewAddress) {
+      // Creating new address
+      const addressValidationError = validateAddressForm();
+      if (addressValidationError) {
+        setAddressError(addressValidationError);
+        toast({
+          title: "Endereço inválido",
+          description: addressValidationError,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check delivery availability
+      if (!isDeliveryAvailable(addressForm.city, addressForm.state)) {
+        setAddressError("Entrega não disponível para esta localidade");
+        toast({
+          title: "Entrega não disponível",
+          description: `Não entregamos em ${addressForm.city}, ${addressForm.state}. Atualmente entregamos apenas em João Pessoa, PB.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Format the complete address for the API
+      deliveryAddress = [
+        addressForm.street,
+        addressForm.number,
+        addressForm.complement && addressForm.complement.trim() ? addressForm.complement : null,
+        addressForm.neighborhood,
+        addressForm.city,
+        addressForm.state,
+        addressForm.cep
+      ].filter(Boolean).join(', ');
+      
+      // Save address if requested
+      if (shouldSaveAddress && addressName.trim()) {
+        try {
+          await createAddressMutation.mutateAsync({
+            name: addressName,
+            cep: addressForm.cep.replace(/\D/g, ''),
+            street: addressForm.street,
+            number: addressForm.number,
+            complement: addressForm.complement,
+            neighborhood: addressForm.neighborhood,
+            city: addressForm.city,
+            state: addressForm.state,
+            isDefault: false
+          });
+        } catch (error) {
+          console.error("Error saving address:", error);
+          // Continue with checkout even if address saving fails
+        }
+      }
+    } else {
+      setAddressError("Por favor, selecione um endereço ou crie um novo");
       return;
     }
-    
-    // Check delivery availability for the address
-    if (!isDeliveryAvailable(addressForm.city, addressForm.state)) {
-      setAddressError("Entrega não disponível para esta localidade");
-      toast({
-        title: "Entrega não disponível",
-        description: `Não entregamos em ${addressForm.city}, ${addressForm.state}. Atualmente entregamos apenas em João Pessoa, PB.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Format the complete address for the API
-    const fullAddress = [
-      addressForm.street,
-      addressForm.number,
-      addressForm.complement && addressForm.complement.trim() ? addressForm.complement : null,
-      addressForm.neighborhood,
-      addressForm.city,
-      addressForm.state,
-      addressForm.cep
-    ].filter(Boolean).join(', ');
     
     setAddressError("");
-    checkoutMutation.mutate(fullAddress);
+    checkoutMutation.mutate(deliveryAddress);
   };
 
   return (
@@ -770,7 +857,7 @@ export default function Cart() {
                     Finalizar Pedido
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
@@ -778,121 +865,214 @@ export default function Cart() {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    {/* CEP Lookup */}
-                    <div className="space-y-2">
-                      <Label htmlFor="cep">CEP</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="cep"
-                          placeholder="00000-000"
-                          value={addressForm.cep}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
-                            handleAddressFieldChange('cep', value);
-                          }}
-                          onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
-                          maxLength={9}
-                          className={addressError ? "border-red-500" : ""}
-                          data-testid="input-cep"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleCepLookup(addressForm.cep)}
-                          disabled={cepLoading || !addressForm.cep}
-                          data-testid="button-search-cep"
-                        >
-                          {cepLoading ? "..." : "Buscar"}
-                        </Button>
+                    {/* Address Selection */}
+                    {savedAddresses && savedAddresses.length > 0 && (
+                      <div className="space-y-3">
+                        <Label>Endereços Salvos</Label>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {savedAddresses.map((address) => (
+                            <div
+                              key={address.id}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                                selectedAddressId === address.id
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                              onClick={() => {
+                                setSelectedAddressId(address.id);
+                                setIsCreatingNewAddress(false);
+                                setAddressError("");
+                              }}
+                              data-testid={`address-option-${address.id}`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <p className="font-medium text-foreground">{address.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {address.street}, {address.number}
+                                    {address.complement && `, ${address.complement}`}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {address.neighborhood}, {address.city} - {address.state}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">CEP: {address.cep}</p>
+                                </div>
+                                {address.isDefault && (
+                                  <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      {addressError && (
-                        <p className="text-sm text-red-600" data-testid="text-address-error">
-                          {addressError}
-                        </p>
+                    )}
+
+                    {/* New Address Option */}
+                    <div className="space-y-3">
+                      <div
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                          isCreatingNewAddress
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => {
+                          setIsCreatingNewAddress(true);
+                          setSelectedAddressId(null);
+                          setAddressError("");
+                        }}
+                        data-testid="option-new-address"
+                      >
+                        <p className="font-medium text-foreground">+ Criar novo endereço</p>
+                      </div>
+
+                      {/* New Address Form */}
+                      {isCreatingNewAddress && (
+                        <div className="space-y-4 border rounded-lg p-4 bg-accent/20">
+                          {/* Address Name for Saving */}
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="save-address"
+                                checked={shouldSaveAddress}
+                                onChange={(e) => setShouldSaveAddress(e.target.checked)}
+                                className="w-4 h-4"
+                                data-testid="checkbox-save-address"
+                              />
+                              <Label htmlFor="save-address" className="text-sm">
+                                Salvar este endereço para futuros pedidos
+                              </Label>
+                            </div>
+                            {shouldSaveAddress && (
+                              <Input
+                                placeholder="Nome do endereço (ex: Casa, Trabalho)"
+                                value={addressName}
+                                onChange={(e) => setAddressName(e.target.value)}
+                                data-testid="input-address-name"
+                              />
+                            )}
+                          </div>
+
+                          {/* CEP Lookup */}
+                          <div className="space-y-2">
+                            <Label htmlFor="cep">CEP</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="cep"
+                                placeholder="00000-000"
+                                value={addressForm.cep}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+                                  handleAddressFieldChange('cep', value);
+                                }}
+                                onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
+                                maxLength={9}
+                                className={addressError ? "border-red-500" : ""}
+                                data-testid="input-cep"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleCepLookup(addressForm.cep)}
+                                disabled={cepLoading || !addressForm.cep}
+                                data-testid="button-search-cep"
+                              >
+                                {cepLoading ? "..." : "Buscar"}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Address Fields */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                              <Label htmlFor="street">Logradouro</Label>
+                              <Input
+                                id="street"
+                                placeholder="Rua, Avenida, etc."
+                                value={addressForm.street}
+                                onChange={(e) => handleAddressFieldChange('street', e.target.value)}
+                                readOnly={!!addressForm.street}
+                                className={!!addressForm.street ? "bg-gray-100" : ""}
+                                data-testid="input-street"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="number">Número *</Label>
+                              <Input
+                                id="number"
+                                placeholder="123"
+                                value={addressForm.number}
+                                onChange={(e) => handleAddressFieldChange('number', e.target.value)}
+                                data-testid="input-number"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="complement">Complemento</Label>
+                              <Input
+                                id="complement"
+                                placeholder="Apt 45, Bloco B, etc."
+                                value={addressForm.complement}
+                                onChange={(e) => handleAddressFieldChange('complement', e.target.value)}
+                                data-testid="input-complement"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="neighborhood">Bairro</Label>
+                              <Input
+                                id="neighborhood"
+                                placeholder="Nome do bairro"
+                                value={addressForm.neighborhood}
+                                onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
+                                readOnly={!!addressForm.neighborhood}
+                                className={!!addressForm.neighborhood ? "bg-gray-100" : ""}
+                                data-testid="input-neighborhood"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="city">Cidade</Label>
+                              <Input
+                                id="city"
+                                placeholder="Nome da cidade"
+                                value={addressForm.city}
+                                onChange={(e) => handleAddressFieldChange('city', e.target.value)}
+                                readOnly={!!addressForm.city}
+                                className={!!addressForm.city ? "bg-gray-100" : ""}
+                                data-testid="input-city"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="state">Estado</Label>
+                              <Input
+                                id="state"
+                                placeholder="UF"
+                                value={addressForm.state}
+                                onChange={(e) => handleAddressFieldChange('state', e.target.value.toUpperCase())}
+                                readOnly={!!addressForm.state}
+                                className={!!addressForm.state ? "bg-gray-100" : ""}
+                                maxLength={2}
+                                data-testid="input-state"
+                              />
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-muted-foreground">
+                            Digite o CEP e clique em "Buscar" para preencher automaticamente o endereço
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    {/* Address Fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
-                        <Label htmlFor="street">Logradouro</Label>
-                        <Input
-                          id="street"
-                          placeholder="Rua, Avenida, etc."
-                          value={addressForm.street}
-                          onChange={(e) => handleAddressFieldChange('street', e.target.value)}
-                          readOnly={!!addressForm.street}
-                          className={!!addressForm.street ? "bg-gray-100" : ""}
-                          data-testid="input-street"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="number">Número *</Label>
-                        <Input
-                          id="number"
-                          placeholder="123"
-                          value={addressForm.number}
-                          onChange={(e) => handleAddressFieldChange('number', e.target.value)}
-                          data-testid="input-number"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="complement">Complemento</Label>
-                        <Input
-                          id="complement"
-                          placeholder="Apt 45, Bloco B, etc."
-                          value={addressForm.complement}
-                          onChange={(e) => handleAddressFieldChange('complement', e.target.value)}
-                          data-testid="input-complement"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="neighborhood">Bairro</Label>
-                        <Input
-                          id="neighborhood"
-                          placeholder="Nome do bairro"
-                          value={addressForm.neighborhood}
-                          onChange={(e) => handleAddressFieldChange('neighborhood', e.target.value)}
-                          readOnly={!!addressForm.neighborhood}
-                          className={!!addressForm.neighborhood ? "bg-gray-100" : ""}
-                          data-testid="input-neighborhood"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="city">Cidade</Label>
-                        <Input
-                          id="city"
-                          placeholder="Nome da cidade"
-                          value={addressForm.city}
-                          onChange={(e) => handleAddressFieldChange('city', e.target.value)}
-                          readOnly={!!addressForm.city}
-                          className={!!addressForm.city ? "bg-gray-100" : ""}
-                          data-testid="input-city"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="state">Estado</Label>
-                        <Input
-                          id="state"
-                          placeholder="UF"
-                          value={addressForm.state}
-                          onChange={(e) => handleAddressFieldChange('state', e.target.value.toUpperCase())}
-                          readOnly={!!addressForm.state}
-                          className={!!addressForm.state ? "bg-gray-100" : ""}
-                          maxLength={2}
-                          data-testid="input-state"
-                        />
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground">
-                      Digite o CEP e clique em "Buscar" para preencher automaticamente o endereço
-                    </p>
+                    {/* Error Display */}
+                    {addressError && (
+                      <p className="text-sm text-red-600" data-testid="text-address-error">
+                        {addressError}
+                      </p>
+                    )}
                     
                     <div className="bg-accent p-4 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
@@ -914,11 +1094,17 @@ export default function Cart() {
                       </Button>
                       <Button 
                         onClick={handleCheckout}
-                        disabled={checkoutMutation.isPending || !!validateAddressForm() || !!addressError}
+                        disabled={
+                          checkoutMutation.isPending || 
+                          createAddressMutation.isPending ||
+                          (!selectedAddressId && !isCreatingNewAddress) ||
+                          (isCreatingNewAddress && (!!validateAddressForm() || !!addressError)) ||
+                          (shouldSaveAddress && !addressName.trim())
+                        }
                         className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                         data-testid="button-confirm-checkout"
                       >
-                        {checkoutMutation.isPending ? "Processando..." : "Confirmar Pedido"}
+                        {(checkoutMutation.isPending || createAddressMutation.isPending) ? "Processando..." : "Confirmar Pedido"}
                       </Button>
                     </div>
                   </div>
