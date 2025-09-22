@@ -1,6 +1,6 @@
 # Visão Geral
 
-Este é um aplicativo brasileiro de e-commerce de cupcakes chamado **"Doce Delícia"**, desenvolvido com **React** no frontend e **Express.js** no backend.  
+Este é um aplicativo de e-commerce de cupcakes chamado **"Doce Delícia"**, desenvolvido com **React** no frontend e **Express.js** no backend.  
 O aplicativo permite que os clientes naveguem pelos cupcakes por categoria, adicionem itens ao carrinho, gerenciem favoritos e façam pedidos.  
 Ele conta com **autenticação via Replit Auth**, **design responsivo** usando componentes **shadcn/ui** e um **banco de dados PostgreSQL** para persistência de dados.
 
