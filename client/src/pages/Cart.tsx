@@ -18,54 +18,9 @@ import type { Product, Address } from "@shared/schema";
 
 export default function Cart() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading, addToCart } = useCart();
-  const { cep, available, city, state, setCep, setDeliveryInfo } = useDelivery();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Fetch products for the "continuar comprando" section
-  const { data: products } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
-  });
-
-  // Fetch user's saved addresses
-  const { data: savedAddresses } = useQuery<Address[]>({
-    queryKey: ["/api/addresses"],
-    enabled: isAuthenticated,
-  });
-
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [addressForm, setAddressForm] = useState({
-    cep: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: ""
-  });
-  const [addressError, setAddressError] = useState("");
-  const [cepLoading, setCepLoading] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
-  const [couponError, setCouponError] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  const [showPixQr, setShowPixQr] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [isCreatingNewAddress, setIsCreatingNewAddress] = useState(false);
-  const [shouldSaveAddress, setShouldSaveAddress] = useState(false);
-  const [addressName, setAddressName] = useState("");
-
-  // Auto-select default address when checkout opens
-  useEffect(() => {
-    if (isCheckoutOpen && savedAddresses && savedAddresses.length > 0) {
-      const defaultAddress = savedAddresses.find(addr => addr.isDefault);
-      if (defaultAddress && !selectedAddressId && !isCreatingNewAddress) {
-        setSelectedAddressId(defaultAddress.id);
-      }
-    }
-  }, [isCheckoutOpen, savedAddresses, selectedAddressId, isCreatingNewAddress]);
-
+  // Handle early returns before any other hooks
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast({
@@ -102,6 +57,57 @@ export default function Cart() {
   if (!isAuthenticated) {
     return null;
   }
+
+  return <CartContent />;
+}
+
+function CartContent() {
+  const { items, itemCount, total, updateQuantity, removeFromCart, clearCart, isLoading, addToCart } = useCart();
+  const { cep, available, city, state, setCep, setDeliveryInfo } = useDelivery();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch products for the "continuar comprando" section
+  const { data: products } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+
+  // Fetch user's saved addresses
+  const { data: savedAddresses } = useQuery<Address[]>({
+    queryKey: ["/api/addresses"],
+  });
+
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    cep: "",
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
+    city: "",
+    state: ""
+  });
+  const [addressError, setAddressError] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [showPixQr, setShowPixQr] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isCreatingNewAddress, setIsCreatingNewAddress] = useState(false);
+  const [shouldSaveAddress, setShouldSaveAddress] = useState(false);
+  const [addressName, setAddressName] = useState("");
+
+  // Auto-select default address when checkout opens
+  useEffect(() => {
+    if (isCheckoutOpen && savedAddresses && savedAddresses.length > 0) {
+      const defaultAddress = savedAddresses.find(addr => addr.isDefault);
+      if (defaultAddress && !selectedAddressId && !isCreatingNewAddress) {
+        setSelectedAddressId(defaultAddress.id);
+      }
+    }
+  }, [isCheckoutOpen, savedAddresses, selectedAddressId, isCreatingNewAddress]);
 
   const deliveryFee = total > 0 ? 5.00 : 0;
   // Discount should only apply to product subtotal, not delivery fee
