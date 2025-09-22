@@ -64,23 +64,6 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Right section - Auth/Profile buttons */}
             <div className="flex items-center space-x-2">
-              {/* Cart Icon - Always show when authenticated */}
-              {isAuthenticated && (
-                <Link href="/cart" data-testid="link-cart">
-                  <Button 
-                    size="icon" 
-                    className="relative bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    {itemCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-1.5 py-0.5 text-xs min-w-[18px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
-                        {itemCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              )}
-              
               {/* Mobile menu */}
               <Sheet>
                 <SheetTrigger asChild>
@@ -135,38 +118,56 @@ export default function Layout({ children }: LayoutProps) {
               </Sheet>
 
               {isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <>
+                  {/* Profile Icon - First on mobile, last on desktop */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        size="icon" 
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 order-1 sm:order-2"
+                        data-testid="button-profile-menu"
+                      >
+                        <User className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile" className="flex items-center w-full" data-testid="menu-profile">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Meu Perfil
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/orders" className="flex items-center w-full" data-testid="menu-orders">
+                          <Package className="mr-2 h-4 w-4" />
+                          Meus Pedidos
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <a href="/api/logout" className="flex items-center w-full" data-testid="menu-logout">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sair
+                        </a>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Cart Icon - Last on mobile, first on desktop */}
+                  <Link href="/cart" data-testid="link-cart">
                     <Button 
                       size="icon" 
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9"
-                      data-testid="button-profile-menu"
+                      className="relative bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 order-2 sm:order-1"
                     >
-                      <User className="h-4 w-4" />
+                      <ShoppingCart className="h-4 w-4" />
+                      {itemCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-background text-foreground rounded-full px-1.5 py-0.5 text-xs min-w-[18px] text-center font-semibold shadow-lg border" data-testid="text-cart-count">
+                          {itemCount}
+                        </span>
+                      )}
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center w-full" data-testid="menu-profile">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Meu Perfil
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/orders" className="flex items-center w-full" data-testid="menu-orders">
-                        <Package className="mr-2 h-4 w-4" />
-                        Meus Pedidos
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <a href="/api/logout" className="flex items-center w-full" data-testid="menu-logout">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sair
-                      </a>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </Link>
+                </>
               ) : (
                 <div className="hidden sm:flex items-center space-x-2">
                   <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 h-9">
