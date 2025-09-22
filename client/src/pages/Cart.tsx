@@ -807,11 +807,11 @@ export default function Cart() {
                 </div>
                 <div 
                   className={`flex items-center space-x-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                    selectedPaymentMethod === 'cash' 
+                    selectedPaymentMethod === 'cod' 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50'
                   }`}
-                  onClick={() => handlePaymentMethodSelect('cash')}
+                  onClick={() => handlePaymentMethodSelect('cod')}
                   data-testid="option-payment-cash"
                 >
                   <span className="text-lg">💰</span>
