@@ -180,6 +180,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cancel order
+  app.put('/api/orders/:id/cancel', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const order = await storage.cancelOrder(userId, id);
+      res.json(order);
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   app.post('/api/orders', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -192,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           quantity: z.number().int().min(1)
         })).min(1, "Pelo menos um item é obrigatório"),
         couponCode: z.string().nullable().optional(),
-        paymentMethod: z.string().optional()
+        paymentMethod: z.enum(['pix', 'cod']).optional().default('cod')
       });
       
       const validatedData = orderRequestSchema.parse(req.body);
@@ -545,6 +562,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting product:", error);
       res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  // Create sample orders for authenticated user (for testing order tracking) - Admin only
+  app.post('/api/seed-orders', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get some products to create sample orders
+      const products = await storage.getProducts();
+      if (products.length === 0) {
+        return res.status(400).json({ message: "Não há produtos disponíveis para criar pedidos de exemplo" });
+      }
+
+      // Ensure we have enough products for sample orders
+      if (products.length < 3) {
+        return res.status(400).json({ message: "Produtos insuficientes para criar pedidos de exemplo" });
+      }
+
+      // Pick products safely
+      const availableProducts = products.slice(0, Math.min(6, products.length));
+      
+      // Sample order 1: Ready order (PIX payment, ready for pickup)
+      const order1Items = [
+        { productId: availableProducts[0].id, quantity: 2, price: availableProducts[0].price },
+        { productId: availableProducts[1].id, quantity: 1, price: availableProducts[1].price }
+      ];
+      
+      const order1 = await storage.createOrder({
+        userId,
+        deliveryAddress: "Rua das Flores, 123 - Centro, João Pessoa - PB, 58000-000",
+        total: "25.80",
+        status: "ready",
+        appliedCouponCode: null,
+        discountAmount: "0.00"
+      }, order1Items);
+
+      // Sample order 2: Delivered order
+      const order2Items = [
+        { productId: availableProducts[2 % availableProducts.length].id, quantity: 3, price: availableProducts[2 % availableProducts.length].price }
+      ];
+      
+      const order2 = await storage.createOrder({
+        userId,
+        deliveryAddress: "Av. Epitácio Pessoa, 456 - Tambaú, João Pessoa - PB, 58039-000", 
+        total: "28.50",
+        status: "delivered",
+        appliedCouponCode: null,
+        discountAmount: "0.00"
+      }, order2Items);
+
+      // Sample order 3: Pending order (cash on delivery)
+      const order3Items = [
+        { productId: availableProducts[0].id, quantity: 1, price: availableProducts[0].price }
+      ];
+      
+      const order3 = await storage.createOrder({
+        userId,
+        deliveryAddress: "Rua João Suassuna, 789 - Bancários, João Pessoa - PB, 58051-900",
+        total: "16.90",
+        status: "pending", 
+        appliedCouponCode: null,
+        discountAmount: "0.00"
+      }, order3Items);
+
+      res.json({ 
+        message: "Pedidos de exemplo criados com sucesso",
+        orders: [order1, order2, order3]
+      });
+      
+    } catch (error) {
+      console.error('Error creating sample orders:', error);
+      res.status(500).json({ message: "Erro ao criar pedidos de exemplo" });
     }
   });
 

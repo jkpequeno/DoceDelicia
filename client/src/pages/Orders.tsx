@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,12 @@ import {
   Calendar,
   MapPin,
   ArrowRight,
-  ShoppingBag
+  ShoppingBag,
+  X
 } from "lucide-react";
 import { useEffect } from "react";
 import type { Order } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Orders() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -23,6 +25,36 @@ export default function Orders() {
     queryKey: ["/api/orders"],
     enabled: isAuthenticated,
   });
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return await apiRequest('PUT', `/api/orders/${orderId}/cancel`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pedido cancelado",
+        description: "Seu pedido foi cancelado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao cancelar",
+        description: error.message || "Não foi possível cancelar o pedido.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const canCancelOrder = (status: string) => {
+    return status === 'pending' || status === 'confirmed';
+  };
+
+  const handleCancelOrder = (orderId: string) => {
+    if (confirm('Tem certeza que deseja cancelar este pedido?')) {
+      cancelOrderMutation.mutate(orderId);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -167,16 +199,31 @@ export default function Orders() {
                 
                 <div className="flex items-center space-x-3">
                   {getStatusBadge(order.status)}
-                  <Link href={`/order/${order.id}`}>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      data-testid={`button-view-order-${order.id}`}
-                    >
-                      Ver Detalhes
-                      <ArrowRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
+                  <div className="flex items-center space-x-2">
+                    {canCancelOrder(order.status) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCancelOrder(order.id)}
+                        disabled={cancelOrderMutation.isPending}
+                        data-testid={`button-cancel-order-${order.id}`}
+                        className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancelar
+                      </Button>
+                    )}
+                    <Link href={`/order/${order.id}`}>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        data-testid={`button-view-order-${order.id}`}
+                      >
+                        Ver Detalhes
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
               

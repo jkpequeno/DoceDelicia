@@ -59,6 +59,7 @@ export interface IStorage {
   getUserOrders(userId: string): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderWithItems(userId: string, orderId: string): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined>;
+  cancelOrder(userId: string, orderId: string): Promise<Order>;
   
   // Favorites operations
   getUserFavorites(userId: string): Promise<(Favorite & { product: Product })[]>;
@@ -333,6 +334,27 @@ export class DatabaseStorage implements IStorage {
       ...order,
       orderItems: orderItemsWithProducts
     };
+  }
+
+  async cancelOrder(userId: string, orderId: string): Promise<Order> {
+    const [order] = await db.select().from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+    
+    if (!order) {
+      throw new Error('Pedido não encontrado');
+    }
+
+    // Only allow canceling orders in pending or confirmed status
+    if (order.status !== 'pending' && order.status !== 'confirmed') {
+      throw new Error('Este pedido não pode ser cancelado');
+    }
+
+    const [updatedOrder] = await db.update(orders)
+      .set({ status: 'cancelled' })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    return updatedOrder;
   }
 
   // Favorites operations
