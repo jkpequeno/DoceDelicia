@@ -105,11 +105,28 @@ export const coupons = pgTable("coupons", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const addresses = pgTable("addresses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  name: varchar("name").notNull(), // e.g., "Casa", "Trabalho", "Casa da Mãe"
+  cep: varchar("cep").notNull(),
+  street: varchar("street").notNull(),
+  number: varchar("number").notNull(),
+  complement: varchar("complement"),
+  neighborhood: varchar("neighborhood").notNull(),
+  city: varchar("city").notNull(),
+  state: varchar("state").notNull(),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   cartItems: many(cartItems),
   orders: many(orders),
   favorites: many(favorites),
+  addresses: many(addresses),
 }));
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -167,6 +184,13 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   }),
 }));
 
+export const addressesRelations = relations(addresses, ({ one }) => ({
+  user: one(users, {
+    fields: [addresses.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas  
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
@@ -218,6 +242,12 @@ export const insertCouponSchema = createInsertSchema(coupons).omit({
   createdAt: true,
 });
 
+export const insertAddressSchema = createInsertSchema(addresses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -228,6 +258,7 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Favorite = typeof favorites.$inferSelect;
 export type Coupon = typeof coupons.$inferSelect;
+export type Address = typeof addresses.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -238,3 +269,4 @@ export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type CreateOrderItem = z.infer<typeof createOrderItemSchema>;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type InsertAddress = z.infer<typeof insertAddressSchema>;
