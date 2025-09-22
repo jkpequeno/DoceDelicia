@@ -83,18 +83,6 @@ export default function Layout({ children }: LayoutProps) {
                         <span className="font-medium">{item.name}</span>
                       </Link>
                     ))}
-                    <Link
-                      href="/cart"
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
-                      data-testid="link-mobile-carrinho"
-                    >
-                      <span className="font-medium">Carrinho</span>
-                      {itemCount > 0 && (
-                        <span className="bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs">
-                          {itemCount}
-                        </span>
-                      )}
-                    </Link>
                     {!isAuthenticated && (
                       <div className="border-t pt-4 space-y-3">
                         <a
