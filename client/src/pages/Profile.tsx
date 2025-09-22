@@ -355,38 +355,38 @@ export default function Profile() {
             <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h3 className="font-serif font-bold text-foreground mb-4">Menu</h3>
               <nav className="space-y-2">
-                <a 
-                  href="#personal-data"
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
+                <button 
+                  onClick={() => document.getElementById('personal-data')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
                   data-testid="nav-personal-data"
                 >
                   <UserIcon className="w-5 h-5" />
                   <span>Dados Pessoais</span>
-                </a>
-                <a 
-                  href="#orders"
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
+                </button>
+                <button 
+                  onClick={() => document.getElementById('orders')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
                   data-testid="nav-orders"
                 >
                   <FileText className="w-5 h-5" />
                   <span>Histórico de Pedidos</span>
-                </a>
-                <a 
-                  href="#addresses"
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
+                </button>
+                <button 
+                  onClick={() => document.getElementById('addresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
                   data-testid="nav-addresses"
                 >
                   <MapPin className="w-5 h-5" />
                   <span>Endereços</span>
-                </a>
-                <a 
-                  href="#favorites"
-                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
+                </button>
+                <button 
+                  onClick={() => document.getElementById('favorites')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer w-full text-left"
                   data-testid="nav-favorites"
                 >
                   <Heart className="w-5 h-5" />
                   <span>Favoritos</span>
-                </a>
+                </button>
                 <a 
                   href="/api/logout" 
                   className="flex items-center space-x-2 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive cursor-pointer"
