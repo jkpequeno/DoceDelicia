@@ -31,8 +31,6 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Navigation state
-  const [activeSection, setActiveSection] = useState('personal');
 
   // Address form state
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
@@ -357,46 +355,38 @@ export default function Profile() {
             <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h3 className="font-serif font-bold text-foreground mb-4">Menu</h3>
               <nav className="space-y-2">
-                <div 
-                  className={`flex items-center space-x-2 p-3 rounded-xl transition-colors cursor-pointer ${
-                    activeSection === 'personal' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-accent text-muted-foreground'
-                  }`}
-                  onClick={() => setActiveSection('personal')}
+                <a 
+                  href="#personal-data"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
                   data-testid="nav-personal-data"
                 >
                   <UserIcon className="w-5 h-5" />
                   <span>Dados Pessoais</span>
-                </div>
-                <div 
-                  className={`flex items-center space-x-2 p-3 rounded-xl transition-colors cursor-pointer ${
-                    activeSection === 'orders' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-accent text-muted-foreground'
-                  }`}
-                  onClick={() => setActiveSection('orders')}
+                </a>
+                <a 
+                  href="#orders"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
                   data-testid="nav-orders"
                 >
                   <FileText className="w-5 h-5" />
                   <span>Histórico de Pedidos</span>
-                </div>
-                <div 
-                  className={`flex items-center space-x-2 p-3 rounded-xl transition-colors cursor-pointer ${
-                    activeSection === 'addresses' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-accent text-muted-foreground'
-                  }`}
-                  onClick={() => setActiveSection('addresses')}
+                </a>
+                <a 
+                  href="#addresses"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
                   data-testid="nav-addresses"
                 >
                   <MapPin className="w-5 h-5" />
                   <span>Endereços</span>
-                </div>
-                <div 
-                  className={`flex items-center space-x-2 p-3 rounded-xl transition-colors cursor-pointer ${
-                    activeSection === 'favorites' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-accent text-muted-foreground'
-                  }`}
-                  onClick={() => setActiveSection('favorites')}
+                </a>
+                <a 
+                  href="#favorites"
+                  className="flex items-center space-x-2 p-3 rounded-xl hover:bg-accent transition-colors text-muted-foreground cursor-pointer"
                   data-testid="nav-favorites"
                 >
                   <Heart className="w-5 h-5" />
                   <span>Favoritos</span>
-                </div>
+                </a>
                 <a 
                   href="/api/logout" 
                   className="flex items-center space-x-2 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive cursor-pointer"
@@ -412,444 +402,452 @@ export default function Profile() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Data Section */}
-            {activeSection === 'personal' && (
-              <div className="bg-card rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-serif font-bold text-foreground">Dados Pessoais</h3>
-                  <Button variant="ghost" className="text-primary hover:underline" data-testid="button-edit-profile">
-                    Editar
-                  </Button>
+            <div id="personal-data" className="bg-card rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-serif font-bold text-foreground">Dados Pessoais</h3>
+                <Button variant="ghost" className="text-primary hover:underline" data-testid="button-edit-profile">
+                  Editar
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-foreground mb-2">
+                    Nome
+                  </Label>
+                  <Input 
+                    id="firstName"
+                    value={typedUser?.firstName || ''} 
+                    readOnly
+                    className="bg-input"
+                    data-testid="input-first-name"
+                  />
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="firstName" className="text-sm font-medium text-foreground mb-2">
-                      Nome
-                    </Label>
-                    <Input 
-                      id="firstName"
-                      value={typedUser?.firstName || ''} 
-                      readOnly
-                      className="bg-input"
-                      data-testid="input-first-name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName" className="text-sm font-medium text-foreground mb-2">
-                      Sobrenome
-                    </Label>
-                    <Input 
-                      id="lastName"
-                      value={typedUser?.lastName || ''} 
-                      readOnly
-                      className="bg-input"
-                      data-testid="input-last-name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="text-sm font-medium text-foreground mb-2">
-                      E-mail
-                    </Label>
-                    <Input 
-                      id="email"
-                      value={typedUser?.email || ''} 
-                      readOnly
-                      className="bg-input"
-                      data-testid="input-email"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone" className="text-sm font-medium text-foreground mb-2">
-                      Telefone
-                    </Label>
-                    <Input 
-                      id="phone"
-                      value={typedUser?.phone || ''} 
-                      readOnly
-                      className="bg-input"
-                      data-testid="input-phone"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-foreground mb-2">
+                    Sobrenome
+                  </Label>
+                  <Input 
+                    id="lastName"
+                    value={typedUser?.lastName || ''} 
+                    readOnly
+                    className="bg-input"
+                    data-testid="input-last-name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground mb-2">
+                    E-mail
+                  </Label>
+                  <Input 
+                    id="email"
+                    value={typedUser?.email || ''} 
+                    readOnly
+                    className="bg-input"
+                    data-testid="input-email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-sm font-medium text-foreground mb-2">
+                    Telefone
+                  </Label>
+                  <Input 
+                    id="phone"
+                    value={typedUser?.phone || ''} 
+                    readOnly
+                    className="bg-input"
+                    data-testid="input-phone"
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Orders Section */}
-            {activeSection === 'orders' && (
-              <div className="bg-card rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-serif font-bold text-foreground">Histórico de Pedidos</h3>
-                </div>
-
-                <div className="space-y-4">
-                  {ordersLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
-                    ))
-                  ) : orders && orders.length > 0 ? (
-                    orders.map((order: any) => {
-                      const statusInfo = formatOrderStatus(order.status);
-                      return (
-                        <Link 
-                          key={order.id} 
-                          href={`/order/${order.id}`}
-                          className="block"
-                          data-testid={`link-order-${order.id}`}
-                        >
-                          <div 
-                            className="border border-border rounded-xl p-4 hover:bg-accent transition-colors cursor-pointer"
-                            data-testid={`order-${order.id}`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-sm font-medium text-foreground">
-                                  Pedido #{order.id.slice(-8)}
-                                </span>
-                                <Badge variant={statusInfo.variant} className="text-xs">
-                                  {statusInfo.label}
-                                </Badge>
-                              </div>
-                              <span className="text-sm text-muted-foreground">
-                                {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm text-muted-foreground">
-                                Total do pedido
-                              </div>
-                              <span className="font-bold text-primary">
-                                R$ {parseFloat(order.total).toFixed(2).replace('.', ',')}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-8" data-testid="no-orders">
-                      <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">Você ainda não fez nenhum pedido.</p>
-                      <Link href="/catalog" className="inline-block mt-4">
-                        <Button variant="outline" data-testid="button-start-shopping">
-                          Começar a Comprar
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
+            <div id="orders" className="bg-card rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-serif font-bold text-foreground">Histórico de Pedidos</h3>
               </div>
-            )}
 
-            {/* Addresses Section */}
-            {activeSection === 'addresses' && (
-              <div className="bg-card rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-serif font-bold text-foreground">Meus Endereços</h3>
-                </div>
-
-                {addressesLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[...Array(3)].map((_, i) => (
-                      <Skeleton key={i} className="h-48 w-full rounded-lg" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Add new address card */}
-                    <Dialog open={isAddressDialogOpen} onOpenChange={(open) => {
-                      setIsAddressDialogOpen(open);
-                      if (!open) {
-                        clearAddressForm();
-                      }
-                    }}>
-                      <DialogTrigger asChild>
-                        <Card className="border-2 border-dashed border-primary/30 hover:border-primary/50 transition-colors cursor-pointer" data-testid="card-add-address">
-                          <CardContent className="flex flex-col items-center justify-center h-48 text-center">
-                            <Plus className="h-12 w-12 text-primary/50 mb-4" />
-                            <p className="text-foreground font-medium">Adicionar Endereço</p>
-                            <p className="text-sm text-muted-foreground">Clique para criar um novo endereço</p>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <MapPin className="h-5 w-5" />
-                            {editingAddress ? "Editar Endereço" : "Novo Endereço"}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="name">Nome do Endereço *</Label>
-                            <Input
-                              id="name"
-                              placeholder="Casa, Trabalho, etc."
-                              value={addressForm.name}
-                              onChange={(e) => setAddressForm(prev => ({ ...prev, name: e.target.value }))}
-                              data-testid="input-address-name"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="cep">CEP *</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                id="cep"
-                                placeholder="00000-000"
-                                value={addressForm.cep}
-                                onChange={(e) => {
-                                  const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
-                                  setAddressForm(prev => ({ ...prev, cep: value }));
-                                }}
-                                onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
-                                maxLength={9}
-                                data-testid="input-cep"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => handleCepLookup(addressForm.cep)}
-                                disabled={cepLoading || !addressForm.cep}
-                                data-testid="button-search-cep"
-                              >
-                                {cepLoading ? "..." : "Buscar"}
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                              <Label htmlFor="street">Logradouro *</Label>
-                              <Input
-                                id="street"
-                                placeholder="Rua, Avenida, etc."
-                                value={addressForm.street}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, street: e.target.value }))}
-                                data-testid="input-street"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="number">Número *</Label>
-                              <Input
-                                id="number"
-                                placeholder="123"
-                                value={addressForm.number}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, number: e.target.value }))}
-                                data-testid="input-number"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="complement">Complemento</Label>
-                              <Input
-                                id="complement"
-                                placeholder="Apt 45, Bloco B, etc."
-                                value={addressForm.complement}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, complement: e.target.value }))}
-                                data-testid="input-complement"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="neighborhood">Bairro *</Label>
-                              <Input
-                                id="neighborhood"
-                                placeholder="Nome do bairro"
-                                value={addressForm.neighborhood}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, neighborhood: e.target.value }))}
-                                data-testid="input-neighborhood"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="city">Cidade *</Label>
-                              <Input
-                                id="city"
-                                placeholder="Nome da cidade"
-                                value={addressForm.city}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, city: e.target.value }))}
-                                data-testid="input-city"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="state">Estado *</Label>
-                              <Input
-                                id="state"
-                                placeholder="UF"
-                                value={addressForm.state}
-                                onChange={(e) => setAddressForm(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
-                                maxLength={2}
-                                data-testid="input-state"
-                              />
-                            </div>
-                          </div>
-
-                          {formErrors.length > 0 && (
-                            <div className="text-sm text-red-600" data-testid="text-form-errors">
-                              {formErrors.map((error, index) => (
-                                <p key={index}>{error}</p>
-                              ))}
-                            </div>
-                          )}
-
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              onClick={() => setIsAddressDialogOpen(false)}
-                              className="flex-1"
-                              data-testid="button-cancel"
-                            >
-                              Cancelar
-                            </Button>
-                            <Button 
-                              onClick={handleSubmitAddress}
-                              disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
-                              className="flex-1"
-                              data-testid="button-save-address"
-                            >
-                              {(createAddressMutation.isPending || updateAddressMutation.isPending) ? "Salvando..." : 
-                               editingAddress ? "Atualizar" : "Salvar"}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    {/* Address cards */}
-                    {addresses?.map((address) => (
-                      <Card key={address.id} className={`relative ${address.isDefault ? 'ring-2 ring-primary' : ''}`} data-testid={`card-address-${address.id}`}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <CardTitle className="flex items-center gap-2 text-lg">
-                                <Home className="h-4 w-4" />
-                                {address.name}
-                              </CardTitle>
-                              {address.isDefault && (
-                                <Badge variant="default" className="mt-1" data-testid={`badge-default-${address.id}`}>
-                                  <Star className="h-3 w-3 mr-1" />
-                                  Padrão
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="text-sm text-muted-foreground">
-                            <p>{address.street}, {address.number}</p>
-                            {address.complement && <p>{address.complement}</p>}
-                            <p>{address.neighborhood}</p>
-                            <p>{address.city} - {address.state}</p>
-                            <p>CEP: {address.cep}</p>
-                          </div>
-                          
-                          <div className="flex gap-2 pt-3">
-                            {!address.isDefault && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDefaultMutation.mutate(address.id)}
-                                disabled={setDefaultMutation.isPending}
-                                data-testid={`button-set-default-${address.id}`}
-                              >
-                                <Star className="h-3 w-3 mr-1" />
-                                Definir como padrão
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditAddress(address)}
-                              data-testid={`button-edit-${address.id}`}
-                            >
-                              <Pencil className="h-3 w-3 mr-1" />
-                              Editar
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteAddress(address.id)}
-                              disabled={deleteAddressMutation.isPending}
-                              data-testid={`button-delete-${address.id}`}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Remover
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {addresses && addresses.length === 0 && !addressesLoading && (
-                  <div className="text-center py-16" data-testid="empty-addresses">
-                    <MapPin className="h-24 w-24 mx-auto text-muted-foreground mb-6" />
-                    <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
-                      Nenhum endereço cadastrado
-                    </h2>
-                    <p className="text-muted-foreground mb-8">
-                      Adicione um endereço para facilitar seus pedidos futuros
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Favorites Section */}
-            {activeSection === 'favorites' && (
-              <div className="bg-card rounded-2xl p-6 shadow-lg">
-                <h3 className="text-xl font-serif font-bold text-foreground mb-6">Produtos Favoritos</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {favoritesLoading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <Skeleton key={i} className="h-24 w-full rounded-xl" />
-                    ))
-                  ) : favorites && favorites.length > 0 ? (
-                    favorites.map((favorite: any) => (
+              <div className="space-y-4">
+                {ordersLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                  ))
+                ) : orders && orders.length > 0 ? (
+                  orders.slice(0, 3).map((order: any) => {
+                    const statusInfo = formatOrderStatus(order.status);
+                    return (
                       <Link 
-                        key={favorite.id} 
-                        href={`/product/${favorite.product.id}`}
+                        key={order.id} 
+                        href={`/order/${order.id}`}
                         className="block"
-                        data-testid={`favorite-${favorite.product.id}`}
+                        data-testid={`link-order-${order.id}`}
                       >
-                        <div className="flex items-center space-x-4 p-4 border border-border rounded-xl hover:bg-accent transition-colors cursor-pointer">
-                          <img 
-                            src={favorite.product.imageUrl} 
-                            alt={favorite.product.name}
-                            className="w-16 h-16 object-cover rounded-xl"
-                          />
-                          <div className="flex-1">
-                            <h4 className="font-medium text-foreground">
-                              {favorite.product.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-1">
-                              {favorite.product.description}
-                            </p>
-                            <span className="text-primary font-bold">
-                              R$ {parseFloat(favorite.product.price).toFixed(2).replace('.', ',')}
+                        <div 
+                          className="border border-border rounded-xl p-4 hover:bg-accent transition-colors cursor-pointer"
+                          data-testid={`order-${order.id}`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-sm font-medium text-foreground">
+                                Pedido #{order.id.slice(-8)}
+                              </span>
+                              <Badge variant={statusInfo.variant} className="text-xs">
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                              Total do pedido
+                            </div>
+                            <span className="font-bold text-primary">
+                              R$ {parseFloat(order.total).toFixed(2).replace('.', ',')}
                             </span>
                           </div>
                         </div>
                       </Link>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-8" data-testid="no-favorites">
-                      <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">Você não tem produtos favoritos ainda.</p>
-                      <Link href="/catalog" className="inline-block mt-4">
-                        <Button variant="outline" data-testid="button-browse-products">
-                          Explorar Produtos
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8" data-testid="no-orders">
+                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Você ainda não fez nenhum pedido.</p>
+                    <Link href="/catalog" className="inline-block mt-4">
+                      <Button variant="outline" data-testid="button-start-shopping">
+                        Começar a Comprar
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+                {orders && orders.length > 3 && (
+                  <div className="text-center pt-4">
+                    <Link href="/orders">
+                      <Button variant="outline" data-testid="button-view-all-orders">
+                        Ver todos os pedidos
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* Addresses Section */}
+            <div id="addresses" className="bg-card rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-serif font-bold text-foreground">Meus Endereços</h3>
+              </div>
+
+              {addressesLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-48 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Add new address card */}
+                  <Dialog open={isAddressDialogOpen} onOpenChange={(open) => {
+                    setIsAddressDialogOpen(open);
+                    if (!open) {
+                      clearAddressForm();
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Card className="border-2 border-dashed border-primary/30 hover:border-primary/50 transition-colors cursor-pointer" data-testid="card-add-address">
+                        <CardContent className="flex flex-col items-center justify-center h-48 text-center">
+                          <Plus className="h-12 w-12 text-primary/50 mb-4" />
+                          <p className="text-foreground font-medium">Adicionar Endereço</p>
+                          <p className="text-sm text-muted-foreground">Clique para criar um novo endereço</p>
+                        </CardContent>
+                      </Card>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <MapPin className="h-5 w-5" />
+                          {editingAddress ? "Editar Endereço" : "Novo Endereço"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">Nome do Endereço *</Label>
+                          <Input
+                            id="name"
+                            placeholder="Casa, Trabalho, etc."
+                            value={addressForm.name}
+                            onChange={(e) => setAddressForm(prev => ({ ...prev, name: e.target.value }))}
+                            data-testid="input-address-name"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="cep">CEP *</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="cep"
+                              placeholder="00000-000"
+                              value={addressForm.cep}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+                                setAddressForm(prev => ({ ...prev, cep: value }));
+                              }}
+                              onBlur={() => addressForm.cep && handleCepLookup(addressForm.cep)}
+                              maxLength={9}
+                              data-testid="input-cep"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => handleCepLookup(addressForm.cep)}
+                              disabled={cepLoading || !addressForm.cep}
+                              data-testid="button-search-cep"
+                            >
+                              {cepLoading ? "..." : "Buscar"}
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="md:col-span-2">
+                            <Label htmlFor="street">Logradouro *</Label>
+                            <Input
+                              id="street"
+                              placeholder="Rua, Avenida, etc."
+                              value={addressForm.street}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, street: e.target.value }))}
+                              data-testid="input-street"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="number">Número *</Label>
+                            <Input
+                              id="number"
+                              placeholder="123"
+                              value={addressForm.number}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, number: e.target.value }))}
+                              data-testid="input-number"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="complement">Complemento</Label>
+                            <Input
+                              id="complement"
+                              placeholder="Apt 45, Bloco B, etc."
+                              value={addressForm.complement}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, complement: e.target.value }))}
+                              data-testid="input-complement"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="neighborhood">Bairro *</Label>
+                            <Input
+                              id="neighborhood"
+                              placeholder="Nome do bairro"
+                              value={addressForm.neighborhood}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, neighborhood: e.target.value }))}
+                              data-testid="input-neighborhood"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="city">Cidade *</Label>
+                            <Input
+                              id="city"
+                              placeholder="Nome da cidade"
+                              value={addressForm.city}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, city: e.target.value }))}
+                              data-testid="input-city"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="state">Estado *</Label>
+                            <Input
+                              id="state"
+                              placeholder="UF"
+                              value={addressForm.state}
+                              onChange={(e) => setAddressForm(prev => ({ ...prev, state: e.target.value.toUpperCase() }))}
+                              maxLength={2}
+                              data-testid="input-state"
+                            />
+                          </div>
+                        </div>
+
+                        {formErrors.length > 0 && (
+                          <div className="text-sm text-red-600" data-testid="text-form-errors">
+                            {formErrors.map((error, index) => (
+                              <p key={index}>{error}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsAddressDialogOpen(false)}
+                            className="flex-1"
+                            data-testid="button-cancel"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            onClick={handleSubmitAddress}
+                            disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
+                            className="flex-1"
+                            data-testid="button-save-address"
+                          >
+                            {(createAddressMutation.isPending || updateAddressMutation.isPending) ? "Salvando..." : 
+                             editingAddress ? "Atualizar" : "Salvar"}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Address cards */}
+                  {addresses?.map((address) => (
+                    <Card key={address.id} className={`relative ${address.isDefault ? 'ring-2 ring-primary' : ''}`} data-testid={`card-address-${address.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                              <Home className="h-4 w-4" />
+                              {address.name}
+                            </CardTitle>
+                            {address.isDefault && (
+                              <Badge variant="default" className="mt-1" data-testid={`badge-default-${address.id}`}>
+                                <Star className="h-3 w-3 mr-1" />
+                                Padrão
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="text-sm text-muted-foreground">
+                          <p>{address.street}, {address.number}</p>
+                          {address.complement && <p>{address.complement}</p>}
+                          <p>{address.neighborhood}</p>
+                          <p>{address.city} - {address.state}</p>
+                          <p>CEP: {address.cep}</p>
+                        </div>
+                        
+                        <div className="flex gap-2 pt-3">
+                          {!address.isDefault && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDefaultMutation.mutate(address.id)}
+                              disabled={setDefaultMutation.isPending}
+                              data-testid={`button-set-default-${address.id}`}
+                            >
+                              <Star className="h-3 w-3 mr-1" />
+                              Definir como padrão
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditAddress(address)}
+                            data-testid={`button-edit-${address.id}`}
+                          >
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteAddress(address.id)}
+                            disabled={deleteAddressMutation.isPending}
+                            data-testid={`button-delete-${address.id}`}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Remover
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {addresses && addresses.length === 0 && !addressesLoading && (
+                <div className="text-center py-16" data-testid="empty-addresses">
+                  <MapPin className="h-24 w-24 mx-auto text-muted-foreground mb-6" />
+                  <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
+                    Nenhum endereço cadastrado
+                  </h2>
+                  <p className="text-muted-foreground mb-8">
+                    Adicione um endereço para facilitar seus pedidos futuros
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Favorites Section */}
+            <div id="favorites" className="bg-card rounded-2xl p-6 shadow-lg">
+              <h3 className="text-xl font-serif font-bold text-foreground mb-6">Produtos Favoritos</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {favoritesLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                  ))
+                ) : favorites && favorites.length > 0 ? (
+                  favorites.slice(0, 4).map((favorite: any) => (
+                    <Link 
+                      key={favorite.id} 
+                      href={`/product/${favorite.product.id}`}
+                      className="block"
+                      data-testid={`favorite-${favorite.product.id}`}
+                    >
+                      <div className="flex items-center space-x-4 p-4 border border-border rounded-xl hover:bg-accent transition-colors cursor-pointer">
+                        <img 
+                          src={favorite.product.imageUrl} 
+                          alt={favorite.product.name}
+                          className="w-16 h-16 object-cover rounded-xl"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-foreground">
+                            {favorite.product.name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {favorite.product.description}
+                          </p>
+                          <span className="text-primary font-bold">
+                            R$ {parseFloat(favorite.product.price).toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8" data-testid="no-favorites">
+                    <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Você não tem produtos favoritos ainda.</p>
+                    <Link href="/catalog" className="inline-block mt-4">
+                      <Button variant="outline" data-testid="button-browse-products">
+                        Explorar Produtos
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+              {favorites && favorites.length > 4 && (
+                <div className="text-center pt-6">
+                  <Button variant="outline" data-testid="button-view-all-favorites">
+                    Ver todos os favoritos
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
