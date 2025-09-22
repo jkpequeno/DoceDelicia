@@ -7,6 +7,7 @@ import {
   orderItems,
   favorites,
   coupons,
+  addresses,
   type User,
   type UpsertUser,
   type Product,
@@ -16,6 +17,7 @@ import {
   type OrderItem,
   type Favorite,
   type Coupon,
+  type Address,
   type InsertProduct,
   type InsertCategory,
   type InsertCartItem,
@@ -24,6 +26,7 @@ import {
   type CreateOrderItem,
   type InsertFavorite,
   type InsertCoupon,
+  type InsertAddress,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
@@ -71,6 +74,13 @@ export interface IStorage {
   validateCoupon(code: string): Promise<{ valid: boolean; coupon?: Coupon; error?: string }>;
   incrementCouponUsage(id: string): Promise<void>;
   createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  
+  // Address operations
+  getUserAddresses(userId: string): Promise<Address[]>;
+  createAddress(address: InsertAddress): Promise<Address>;
+  updateAddress(addressId: string, userId: string, updates: Partial<InsertAddress>): Promise<Address>;
+  deleteAddress(addressId: string, userId: string): Promise<void>;
+  setDefaultAddress(addressId: string, userId: string): Promise<Address>;
   
   // Admin operations
   getAdminStats(): Promise<{
@@ -493,6 +503,128 @@ export class DatabaseStorage implements IStorage {
       code: coupon.code.trim().toUpperCase()
     }).returning();
     return newCoupon;
+  }
+
+  // Address operations
+  async getUserAddresses(userId: string): Promise<Address[]> {
+    return await db
+      .select()
+      .from(addresses)
+      .where(eq(addresses.userId, userId))
+      .orderBy(desc(addresses.isDefault), desc(addresses.createdAt));
+  }
+
+  async createAddress(address: InsertAddress): Promise<Address> {
+    return await db.transaction(async (tx) => {
+      // Create the address first
+      const [newAddress] = await tx.insert(addresses).values(address).returning();
+
+      // If this should be default, atomically set it as the only default
+      if (address.isDefault) {
+        await tx
+          .update(addresses)
+          .set({ 
+            isDefault: sql`${addresses.id} = ${newAddress.id}`,
+            updatedAt: new Date()
+          })
+          .where(eq(addresses.userId, address.userId));
+      }
+
+      return newAddress;
+    });
+  }
+
+  async updateAddress(addressId: string, userId: string, updates: Partial<InsertAddress>): Promise<Address> {
+    return await db.transaction(async (tx) => {
+      // Verify ownership
+      const [existingAddress] = await tx
+        .select()
+        .from(addresses)
+        .where(and(eq(addresses.id, addressId), eq(addresses.userId, userId)));
+
+      if (!existingAddress) {
+        throw new Error('Endereço não encontrado');
+      }
+
+      // Whitelist allowed update fields (exclude userId and system fields)
+      const { name, cep, street, number, complement, neighborhood, city, state, isDefault } = updates;
+      const allowedUpdates = {
+        ...(name !== undefined && { name }),
+        ...(cep !== undefined && { cep }),
+        ...(street !== undefined && { street }),
+        ...(number !== undefined && { number }),
+        ...(complement !== undefined && { complement }),
+        ...(neighborhood !== undefined && { neighborhood }),
+        ...(city !== undefined && { city }),
+        ...(state !== undefined && { state }),
+        ...(isDefault !== undefined && { isDefault }),
+        updatedAt: new Date()
+      };
+
+      // Handle default address logic atomically
+      if (isDefault) {
+        // Atomically set only this address as default for the user
+        await tx
+          .update(addresses)
+          .set({ 
+            isDefault: sql`${addresses.id} = ${addressId}`,
+            updatedAt: new Date()
+          })
+          .where(eq(addresses.userId, userId));
+      }
+
+      // Update other fields (excluding isDefault since it was handled above)
+      const { isDefault: _, ...otherUpdates } = allowedUpdates;
+      const [updatedAddress] = await tx
+        .update(addresses)
+        .set(otherUpdates)
+        .where(eq(addresses.id, addressId))
+        .returning();
+
+      return updatedAddress;
+    });
+  }
+
+  async deleteAddress(addressId: string, userId: string): Promise<void> {
+    const result = await db
+      .delete(addresses)
+      .where(and(eq(addresses.id, addressId), eq(addresses.userId, userId)))
+      .returning();
+
+    if (result.length === 0) {
+      throw new Error('Endereço não encontrado');
+    }
+  }
+
+  async setDefaultAddress(addressId: string, userId: string): Promise<Address> {
+    return await db.transaction(async (tx) => {
+      // Verify ownership
+      const [existingAddress] = await tx
+        .select()
+        .from(addresses)
+        .where(and(eq(addresses.id, addressId), eq(addresses.userId, userId)));
+
+      if (!existingAddress) {
+        throw new Error('Endereço não encontrado');
+      }
+
+      // Atomically set only this address as default for the user
+      await tx
+        .update(addresses)
+        .set({ 
+          isDefault: sql`${addresses.id} = ${addressId}`,
+          updatedAt: new Date()
+        })
+        .where(eq(addresses.userId, userId));
+
+      // Return the updated address
+      const [updatedAddress] = await tx
+        .select()
+        .from(addresses)
+        .where(eq(addresses.id, addressId));
+
+      return updatedAddress;
+    });
   }
 }
 
