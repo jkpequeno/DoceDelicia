@@ -55,7 +55,7 @@ export interface IStorage {
   
   // Order operations
   createOrder(order: InsertOrder, items: CreateOrderItem[]): Promise<Order>;
-  createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }>;
+  createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string, status?: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderWithItems(userId: string, orderId: string): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined>;
@@ -228,7 +228,7 @@ export class DatabaseStorage implements IStorage {
     return newOrder;
   }
 
-  async createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }> {
+  async createOrderWithCoupon(userId: string, deliveryAddress: string, items: CreateOrderItem[], couponCode: string, status: string = "pending"): Promise<{ order: Order; appliedCoupon: Coupon; totals: { subtotal: string; discount: string; total: string } }> {
     return await db.transaction(async (tx) => {
       // Lock and validate coupon within transaction
       const normalized = couponCode.trim().toUpperCase();
@@ -272,7 +272,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         deliveryAddress,
         total: finalTotal,
-        status: "pending",
+        status: status,
         appliedCouponCode: coupon.code,
         discountAmount,
       }).returning();

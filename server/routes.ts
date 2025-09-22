@@ -191,11 +191,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: z.string(),
           quantity: z.number().int().min(1)
         })).min(1, "Pelo menos um item é obrigatório"),
-        couponCode: z.string().nullable().optional()
+        couponCode: z.string().nullable().optional(),
+        paymentMethod: z.string().optional()
       });
       
       const validatedData = orderRequestSchema.parse(req.body);
-      const { deliveryAddress, items, couponCode } = validatedData;
+      const { deliveryAddress, items, couponCode, paymentMethod } = validatedData;
+      
+      // Determine order status based on payment method
+      const orderStatus = paymentMethod === 'pix' ? 'confirmed' : 'pending';
 
       // Extract and validate CEP for delivery area restriction
       const cepMatch = deliveryAddress.match(/\b\d{5}-?\d{3}\b/);
@@ -309,7 +313,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userId,
             deliveryAddress,
             orderItems,
-            couponCode
+            couponCode,
+            orderStatus
           );
           
           order = result.order;
@@ -336,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userId,
             deliveryAddress,
             total: finalTotal,
-            status: "pending",
+            status: orderStatus,
             appliedCouponCode: null,
             discountAmount: "0.00",
           },

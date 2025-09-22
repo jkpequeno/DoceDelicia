@@ -138,7 +138,8 @@ export default function Cart() {
       return await apiRequest("POST", "/api/orders", {
         deliveryAddress,
         items: orderItems,
-        couponCode: appliedCoupon?.code || null
+        couponCode: appliedCoupon?.code || null,
+        paymentMethod: selectedPaymentMethod
       });
     },
     onSuccess: () => {
