@@ -80,12 +80,12 @@ export default function Home() {
                 Feitos com amor e ingredientes frescos, nossos cupcakes trazem o sabor da felicidade para cada momento especial.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/catalog" data-testid="link-hero-catalog">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[140px]">
+                <Link href="/catalog" data-testid="link-hero-catalog" className="w-full sm:w-auto">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto sm:min-w-[140px]">
                     Ver Catálogo
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="min-w-[140px]" data-testid="button-hero-about">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto sm:min-w-[140px]" data-testid="button-hero-about">
                   Sobre Nós
                 </Button>
               </div>
