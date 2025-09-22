@@ -762,6 +762,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Screenshot endpoint for development
+  app.post('/api/screenshot', async (req, res) => {
+    try {
+      const { filename, data } = req.body;
+      
+      if (!filename || !data) {
+        return res.status(400).json({ message: "Filename and data are required" });
+      }
+
+      // Remove data URL prefix
+      const base64Data = data.replace(/^data:image\/png;base64,/, '');
+      
+      // Import fs at the top level would be better, but doing it here for dev-only usage
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      // Create screenshots directory if it doesn't exist
+      const screenshotsDir = path.join(process.cwd(), 'screenshots');
+      if (!fs.existsSync(screenshotsDir)) {
+        fs.mkdirSync(screenshotsDir, { recursive: true });
+      }
+      
+      // Save the file
+      const filePath = path.join(screenshotsDir, filename);
+      fs.writeFileSync(filePath, base64Data, 'base64');
+      
+      res.json({ message: `Screenshot saved: ${filename}`, path: filePath });
+    } catch (error) {
+      console.error('Error saving screenshot:', error);
+      res.status(500).json({ message: "Failed to save screenshot" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

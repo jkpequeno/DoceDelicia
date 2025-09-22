@@ -57,19 +57,39 @@ export function DevScreenshot() {
         scrollY: 0
       });
       
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          console.log(`✅ Screenshot saved: ${filename}`);
-        }
-      }, 'image/png');
+      // Convert canvas to base64
+      const base64Data = canvas.toDataURL('image/png');
+      
+      // Save to server
+      try {
+        await fetch('/api/screenshot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filename,
+            data: base64Data
+          })
+        });
+        console.log(`✅ Screenshot saved to file: ${filename}`);
+      } catch (saveError) {
+        console.error('❌ Failed to save screenshot to server:', saveError);
+        // Fallback to download
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            console.log(`✅ Screenshot downloaded: ${filename}`);
+          }
+        }, 'image/png');
+      }
     } catch (error) {
       console.error('❌ Screenshot failed:', error);
     }

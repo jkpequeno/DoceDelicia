@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DevScreenshot } from "./DevScreenshot";
+import { ScreenshotCapture, AutoScreenshotCapture } from "./ScreenshotCapture";
+import { BatchScreenshotCapture } from "./BatchScreenshotCapture";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -228,8 +230,11 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </footer>
       
-      {/* Development Screenshot Tool */}
+      {/* Development Screenshot Tools */}
       <DevScreenshot />
+      <ScreenshotCapture />
+      <AutoScreenshotCapture />
+      <BatchScreenshotCapture />
     </div>
   );
 }
