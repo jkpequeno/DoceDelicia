@@ -2,12 +2,19 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, Menu } from "lucide-react";
+import { ShoppingCart, User, Menu, Package, Settings, LogOut } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -121,14 +128,38 @@ export default function Layout({ children }: LayoutProps) {
               </Sheet>
 
               {isAuthenticated ? (
-                <Link href="/profile" data-testid="link-profile">
-                  <Button 
-                    size="icon" 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      size="icon" 
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      data-testid="button-profile-menu"
+                    >
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center w-full" data-testid="menu-profile">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Meu Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/orders" className="flex items-center w-full" data-testid="menu-orders">
+                        <Package className="mr-2 h-4 w-4" />
+                        Meus Pedidos
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <a href="/api/logout" className="flex items-center w-full" data-testid="menu-logout">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sair
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
