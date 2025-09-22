@@ -745,43 +745,49 @@ export default function Profile() {
                           <p>CEP: {address.cep}</p>
                         </div>
                         
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3">
-                          {!address.isDefault && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDefaultMutation.mutate(address.id)}
-                              disabled={setDefaultMutation.isPending}
-                              className="col-span-2 sm:col-span-1 text-xs lg:text-sm h-8"
-                              data-testid={`button-set-default-${address.id}`}
+                        <div className="grid grid-cols-3 gap-2 pt-3">
+                          {address.isDefault ? (
+                            <Badge 
+                              variant="secondary" 
+                              className="w-full h-9 flex items-center justify-center"
+                              data-testid={`badge-default-fixed-${address.id}`}
                             >
                               <Star className="h-3 w-3 mr-1" />
-                              <span className="hidden sm:inline">Definir padrão</span>
-                              <span className="sm:hidden">Padrão</span>
+                              <span className="truncate">Padrão</span>
+                            </Badge>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              onClick={() => setDefaultMutation.mutate(address.id)}
+                              disabled={setDefaultMutation.isPending}
+                              className="w-full h-9 px-2 min-w-0 justify-center"
+                              data-testid={`button-set-default-${address.id}`}
+                            >
+                              <Star className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="hidden md:inline truncate">Definir padrão</span>
+                              <span className="inline md:hidden truncate">Padrão</span>
                             </Button>
                           )}
                           <Button
                             variant="outline"
-                            size="sm"
                             onClick={() => handleEditAddress(address)}
-                            className={`text-xs lg:text-sm h-8 ${!address.isDefault ? '' : 'col-span-1'}`}
+                            className="w-full h-9 px-2 min-w-0 justify-center"
                             data-testid={`button-edit-${address.id}`}
                           >
-                            <Pencil className="h-3 w-3 mr-1" />
-                            <span className="hidden sm:inline">Editar</span>
-                            <span className="sm:hidden">Edit</span>
+                            <Pencil className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="hidden sm:inline truncate">Editar</span>
+                            <span className="inline sm:hidden" aria-label="Editar">✏️</span>
                           </Button>
                           <Button
                             variant="outline"
-                            size="sm"
                             onClick={() => handleDeleteAddress(address.id)}
                             disabled={deleteAddressMutation.isPending}
-                            className={`text-xs lg:text-sm h-8 ${!address.isDefault ? '' : 'col-span-1'}`}
+                            className="w-full h-9 px-2 min-w-0 justify-center"
                             data-testid={`button-delete-${address.id}`}
                           >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            <span className="hidden sm:inline">Remover</span>
-                            <span className="sm:hidden">Del</span>
+                            <Trash2 className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="hidden sm:inline truncate">Remover</span>
+                            <span className="inline sm:hidden" aria-label="Remover">🗑️</span>
                           </Button>
                         </div>
                       </CardContent>
