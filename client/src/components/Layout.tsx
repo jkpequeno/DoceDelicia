@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DevScreenshot } from "./DevScreenshot";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -226,6 +227,9 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </footer>
+      
+      {/* Development Screenshot Tool */}
+      <DevScreenshot />
     </div>
   );
 }
